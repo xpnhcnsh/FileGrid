@@ -1,7 +1,12 @@
 using MudBlazor.Services;
 using FileGrid.Components;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add db context
+builder.Services.AddDbContext<FileGrid.Entities.FileGridContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("FileGrid")));
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
@@ -21,7 +26,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 
 app.UseAntiforgery();
 
