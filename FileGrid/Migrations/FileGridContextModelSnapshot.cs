@@ -22,6 +22,67 @@ namespace FileGrid.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("FileGrid.Entities.Permission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PermissionName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Permissions");
+                });
+
+            modelBuilder.Entity("FileGrid.Entities.Resource", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BucketName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("FileStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("BucketName", "Path")
+                        .IsUnique();
+
+                    b.ToTable("Resources");
+                });
+
             modelBuilder.Entity("FileGrid.Entities.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -35,6 +96,40 @@ namespace FileGrid.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("FileGrid.Entities.Share", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ShareLink")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ShareType")
+                        .HasColumnType("int");
+
+                    b.PrimitiveCollection<string>("TargetUserIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.ToTable("Shares");
                 });
 
             modelBuilder.Entity("FileGrid.Entities.User", b =>
@@ -69,7 +164,52 @@ namespace FileGrid.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("FileGrid.Entities.UserRole", b =>
+            modelBuilder.Entity("ShareResource", b =>
+                {
+                    b.Property<int>("ShareId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ResourceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ShareId", "ResourceId");
+
+                    b.HasIndex("ResourceId");
+
+                    b.ToTable("ShareResource");
+                });
+
+            modelBuilder.Entity("ShareTargetUser", b =>
+                {
+                    b.Property<int>("ShareId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("ShareId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ShareTargetUser");
+                });
+
+            modelBuilder.Entity("UserPermission", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("UserPermission");
+                });
+
+            modelBuilder.Entity("UserRole", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -81,36 +221,96 @@ namespace FileGrid.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserRole");
                 });
 
-            modelBuilder.Entity("FileGrid.Entities.UserRole", b =>
+            modelBuilder.Entity("FileGrid.Entities.Resource", b =>
                 {
-                    b.HasOne("FileGrid.Entities.Role", "Role")
-                        .WithMany("UserRoles")
+                    b.HasOne("FileGrid.Entities.User", "Creator")
+                        .WithMany("UploadedResources")
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Creator");
+                });
+
+            modelBuilder.Entity("FileGrid.Entities.Share", b =>
+                {
+                    b.HasOne("FileGrid.Entities.User", "OwnerUser")
+                        .WithMany("Shares")
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("OwnerUser");
+                });
+
+            modelBuilder.Entity("ShareResource", b =>
+                {
+                    b.HasOne("FileGrid.Entities.Resource", null)
+                        .WithMany()
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("FileGrid.Entities.Share", null)
+                        .WithMany()
+                        .HasForeignKey("ShareId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ShareTargetUser", b =>
+                {
+                    b.HasOne("FileGrid.Entities.Share", null)
+                        .WithMany()
+                        .HasForeignKey("ShareId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FileGrid.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("UserPermission", b =>
+                {
+                    b.HasOne("FileGrid.Entities.Permission", null)
+                        .WithMany()
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FileGrid.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("UserRole", b =>
+                {
+                    b.HasOne("FileGrid.Entities.Role", null)
+                        .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("FileGrid.Entities.User", "User")
-                        .WithMany("UserRoles")
+                    b.HasOne("FileGrid.Entities.User", null)
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Role");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("FileGrid.Entities.Role", b =>
-                {
-                    b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("FileGrid.Entities.User", b =>
                 {
-                    b.Navigation("UserRoles");
+                    b.Navigation("Shares");
+
+                    b.Navigation("UploadedResources");
                 });
 #pragma warning restore 612, 618
         }

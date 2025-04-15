@@ -8,9 +8,10 @@ public class Share
 {
     [Key]
     public int Id { get; set; }
-    public required Resource Resource { get; set; }
     [Required]
-    public Guid OwnerUserId { get; set; }   // 分享者（例如用户A）的标识
+    public required Guid OwnerUserId { get; set; }   // 分享者（例如用户A）的标识
+    public required User OwnerUser { get; set; }
+    [Required]
     public required ShareType ShareType { get; set; }
     // 如果是匿名分享，生成唯一的分享链接标识（例如 GUID）
     public string? ShareLink { get; set; }
@@ -20,4 +21,7 @@ public class Share
                                               // 目前规定分享仅允许下载，即不允许修改、删除等操作
     public ICollection<Resource> Resources { get; set; } = [];
     public ICollection<User> TargetUsers { get; set; } = [];
+    public ICollection<Guid> TargetUserIds { get; set; } = [];
+    [Required]
+    public ICollection<int> ResourceIds { get; set; } = [];
 }

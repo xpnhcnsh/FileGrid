@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "vIJ761/9+LG9ykjzQ/MEWq5UqxjmyHocBwSNFfjLdWc=",
+  "Hash": "xn/k1NO52vqdgAyEjXL2e3QUuZyEf8FPganAfu6UBgc=",
   "Source": "FileGrid",
   "BasePath": "_content/FileGrid",
   "Mode": "Default",
@@ -16,6 +16,27 @@
     }
   ],
   "Assets": [
+    {
+      "Identity": "/Users/xpnhcnsh/.nuget/packages/extensions.mudblazor.staticinput/3.2.0/staticwebassets/NavigationObserver.js",
+      "SourceId": "Extensions.MudBlazor.StaticInput",
+      "SourceType": "Package",
+      "ContentRoot": "/Users/xpnhcnsh/.nuget/packages/extensions.mudblazor.staticinput/3.2.0/staticwebassets/",
+      "BasePath": "_content/Extensions.MudBlazor.StaticInput",
+      "RelativePath": "NavigationObserver.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "lp4d2hvui5",
+      "Integrity": "5xAqVXGu6Tv7zFwKN73F345Yp8b+mUnkI3nYcD6QCXg=",
+      "CopyToOutputDirectory": "Always",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "/Users/xpnhcnsh/.nuget/packages/extensions.mudblazor.staticinput/3.2.0/staticwebassets/NavigationObserver.js"
+    },
     {
       "Identity": "/Users/xpnhcnsh/.nuget/packages/mudblazor/8.5.1/staticwebassets/MudBlazor.min.css",
       "SourceId": "MudBlazor",
@@ -122,6 +143,27 @@
       "OriginalItemSpec": "/Users/xpnhcnsh/.nuget/packages/mudblazor/8.5.1/staticwebassets/MudBlazor.min.css"
     },
     {
+      "Identity": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/weg7obbbjn-lp4d2hvui5.gz",
+      "SourceId": "Extensions.MudBlazor.StaticInput",
+      "SourceType": "Package",
+      "ContentRoot": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/",
+      "BasePath": "_content/Extensions.MudBlazor.StaticInput",
+      "RelativePath": "NavigationObserver.js.gz",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Alternative",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "/Users/xpnhcnsh/.nuget/packages/extensions.mudblazor.staticinput/3.2.0/staticwebassets/NavigationObserver.js",
+      "AssetTraitName": "Content-Encoding",
+      "AssetTraitValue": "gzip",
+      "Fingerprint": "3tsb99unwb",
+      "Integrity": "aYyZatm1Uyj4ix2ABgzgJ884erHTsxumktPL3rOSt/w=",
+      "CopyToOutputDirectory": "Always",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "/Users/xpnhcnsh/.nuget/packages/extensions.mudblazor.staticinput/3.2.0/staticwebassets/NavigationObserver.js"
+    },
+    {
       "Identity": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/favicon.ico",
       "SourceId": "FileGrid",
       "SourceType": "Discovered",
@@ -144,6 +186,188 @@
     }
   ],
   "Endpoints": [
+    {
+      "Route": "_content/Extensions.MudBlazor.StaticInput/NavigationObserver.js",
+      "AssetFile": "/Users/xpnhcnsh/.nuget/packages/extensions.mudblazor.staticinput/3.2.0/staticwebassets/NavigationObserver.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "6859"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"5xAqVXGu6Tv7zFwKN73F345Yp8b+mUnkI3nYcD6QCXg=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 20 Feb 2025 14:29:49 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-5xAqVXGu6Tv7zFwKN73F345Yp8b+mUnkI3nYcD6QCXg="
+        }
+      ]
+    },
+    {
+      "Route": "_content/Extensions.MudBlazor.StaticInput/NavigationObserver.js",
+      "AssetFile": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/weg7obbbjn-lp4d2hvui5.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000669792364"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1492"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"aYyZatm1Uyj4ix2ABgzgJ884erHTsxumktPL3rOSt/w=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 20 Feb 2025 14:29:48 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"5xAqVXGu6Tv7zFwKN73F345Yp8b+mUnkI3nYcD6QCXg=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-5xAqVXGu6Tv7zFwKN73F345Yp8b+mUnkI3nYcD6QCXg="
+        }
+      ]
+    },
+    {
+      "Route": "_content/Extensions.MudBlazor.StaticInput/NavigationObserver.js.gz",
+      "AssetFile": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/weg7obbbjn-lp4d2hvui5.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "1492"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"aYyZatm1Uyj4ix2ABgzgJ884erHTsxumktPL3rOSt/w=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 20 Feb 2025 14:29:48 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-aYyZatm1Uyj4ix2ABgzgJ884erHTsxumktPL3rOSt/w="
+        }
+      ]
+    },
+    {
+      "Route": "_content/Extensions.MudBlazor.StaticInput/NavigationObserver.lp4d2hvui5.js",
+      "AssetFile": "/Users/xpnhcnsh/.nuget/packages/extensions.mudblazor.staticinput/3.2.0/staticwebassets/NavigationObserver.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "6859"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"5xAqVXGu6Tv7zFwKN73F345Yp8b+mUnkI3nYcD6QCXg=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 20 Feb 2025 14:29:49 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "lp4d2hvui5"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-5xAqVXGu6Tv7zFwKN73F345Yp8b+mUnkI3nYcD6QCXg="
+        },
+        {
+          "Name": "label",
+          "Value": "_content/Extensions.MudBlazor.StaticInput/NavigationObserver.js"
+        }
+      ]
+    },
     {
       "Route": "_content/MudBlazor/MudBlazor.min.css",
       "AssetFile": "/Users/xpnhcnsh/.nuget/packages/mudblazor/8.5.1/staticwebassets/MudBlazor.min.css",

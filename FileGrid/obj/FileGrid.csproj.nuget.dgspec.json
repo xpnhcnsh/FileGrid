@@ -44,6 +44,18 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Extensions.MudBlazor.StaticInput": {
+              "target": "Package",
+              "version": "[3.2.0, )"
+            },
+            "Microsoft.AspNetCore.Components.Authorization": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
+            "Microsoft.AspNetCore.Components.WebAssembly.Server": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[9.0.4, )"
@@ -58,9 +70,13 @@
               "target": "Package",
               "version": "[9.0.4, )"
             },
-            "MudBlazor": {
+            "Minio": {
               "target": "Package",
-              "version": "[8.*, )"
+              "version": "[6.0.4, )"
+            },
+            "Mudblazor": {
+              "target": "Package",
+              "version": "[8.5.1, )"
             }
           },
           "imports": [

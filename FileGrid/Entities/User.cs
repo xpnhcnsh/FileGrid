@@ -10,6 +10,7 @@ public class User
     [Required]
     public required string Name { get; set; }
     [Required]
+    [EmailAddress]
     public required string Email { get; set; }
     [Required]
     public required AccountType AccountType { get; set; }
@@ -19,8 +20,8 @@ public class User
     public required DateTime UpdatedAt { get; set; }
     public string PasswordHash { get; set; } = null!;
     public ICollection<Role> Roles { get; set; } = [];
-    public ICollection<UserRole> UserRoles { get; set; } = [];
     public ICollection<Share> Shares { get; set; } = [];
+    public ICollection<Share> SharedWithMe { get; set; } = [];
     public ICollection<Resource> UploadedResources { get; set; } = [];
     public ICollection<Permission> Permissions { get; set; } = [];
 }

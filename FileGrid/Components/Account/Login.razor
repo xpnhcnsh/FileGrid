@@ -1,0 +1,94 @@
+﻿@page "/Account/Login"
+@using System.ComponentModel.DataAnnotations
+@using FileGrid.Entities.Dto
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager Navigation
+
+<MudPaper Class="mx-auto mt-12 pa-4" Elevation="4" Style="max-width:400px;">
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">LogIn</MudText>
+    <EditForm Model=@Input OnValidSubmit="SignIn" FormName="LoginForm">
+        <DataAnnotationsValidator />
+        <MudStaticTextField @bind-Value="@Input.UserName" name="Input.UserName" Label="User Name"
+            For="@(() => Input.UserName)" FullWidth="true" Class="mb-4" Required="true" />
+        <MudStaticTextField @bind-Value="@Input.Password" name="Input.Password" Label="Password"
+            For="@(() => Input.Password)" Variant="Variant.Text" InputType="InputType.Password" FullWidth="true"
+            Class="mb-4" Required="true" />
+        <MudStaticSwitch Label="Remember Me" @bind-Value="Input.RememberMe" Color="Color.Primary" Class="mb-4" />
+        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-2"
+            FullWidth="true">
+            LogIn
+        </MudButton>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <MudAlert Class="mt-3" Color="Color.Error">@errorMessage</MudAlert>
+    }
+</MudPaper>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm(FormName = "LoginForm")]
+    private InputModel Input { get; set; } = new InputModel();
+    private string errorMessage = string.Empty;
+
+    private async Task SignIn()
+    {
+        try
+        {
+            var claims = new List<Claim>
+{
+new Claim(ClaimTypes.Name, Input.UserName),
+new Claim(ClaimTypes.Role, "Admin")
+};
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = Input.RememberMe,
+                ExpiresUtc = DateTimeOffset.UtcNow.Add(
+            Input.RememberMe ? TimeSpan.FromDays(30) : TimeSpan.FromMinutes(30)),
+                AllowRefresh = true
+            };
+
+            await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            principal,
+            authProperties);
+
+            Navigation.NavigateTo("/", true);
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message.Equals("Exception of type 'Microsoft.AspNetCore.Components.NavigationException' was thrown."))
+            {
+                throw;
+            }
+            else
+            {
+                errorMessage = "Login failed: " + ex.Message;
+            }
+        }
+    }
+
+    public class InputModel
+    {
+        [Required(ErrorMessage = "UserName cannot be empty")]
+        [StringLength(20, ErrorMessage = "1-20 length")]
+        public string UserName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password cannot be empty")]
+        [DataType(DataType.Password)]
+        [StringLength(20, MinimumLength = 1, ErrorMessage = "1-20 length")]
+        public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; } = true;
+    }
+}

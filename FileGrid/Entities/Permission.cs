@@ -8,4 +8,6 @@ public class Permission
     public Guid Id { get; set; }
     [Required]
     public string PermissionName { get; set; } = null!;
+
+    public ICollection<User> Users { get; set; } = [];
 }
