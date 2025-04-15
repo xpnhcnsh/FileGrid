@@ -1,7 +1,15 @@
 ﻿@page "/Projects"
 @attribute [Authorize]
-<h3>Projects</h3>
+
+<MudText>@a</MudText>
+<MudButton @onclick="IncrementCount">+</MudButton>
 
 @code {
+    private int a = 0;
+
+    private void IncrementCount()
+    {
+        a++;
+    }
 
 }
