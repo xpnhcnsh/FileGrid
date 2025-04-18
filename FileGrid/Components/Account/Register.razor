@@ -1,4 +1,4 @@
-﻿@page "/Account/Login"
+﻿@page "/Account/Register"
 @using System.ComponentModel.DataAnnotations
 @using FileGrid.Entities.Dto
 @using Microsoft.AspNetCore.Authentication
@@ -11,28 +11,22 @@
     <MudGrid Justify="Justify.Center">
         <MudItem xs="7">
             <MudText Typo="Typo.h3" Align="Align.Center" Class="my-4">File Grid</MudText>
-            <EditForm Model=@Input OnValidSubmit="SignInAsync" FormName="LoginForm">
+            <EditForm Model=@Input OnValidSubmit="RegisterAsync" FormName="RegisterForm">
                 <DataAnnotationsValidator />
                 <MudStaticTextField @bind-Value="@Input.Email" name="Input.Email" Label="Email"
-                    For="@(() => Input.Email)" FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.End"
+                    For="@(() => Input.Email)" FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Outlined.Email" />
                 <MudStaticTextField @bind-Value="@Input.Password" name="Input.Password" Label="Password"
                     For="@(() => Input.Password)" Variant="Variant.Text" InputType="InputType.Password" FullWidth="true"
-                    Class="mb-4" Required="true" Adornment="Adornment.End"
-                    AdornmentIcon="@Icons.Material.Outlined.Visibility"
-                    AdornmentToggledIcon="@Icons.Material.Outlined.VisibilityOff"
-                    AdornmentClickFunction="showPassword" />
-                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2">
-                    <MudStaticSwitch Label="Remember Me" @bind-Value="Input.RememberMe" Color="Color.Primary"
-                        Typo="Typo.body2" />
-                    <MudLink Href="Account/ForgotPassword" Justify="Justify.Center" Typo="Typo.body2"
-                        Color="Color.Primary">
-                        <b>Forgot password?</b>
-                    </MudLink>
-                </MudStack>
+                    Class="mb-4" Required="true" Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Outlined.Lock" />
+                <MudStaticTextField @bind-Value="@Input.ConfirmPassword" name="Input.ConfirmPassword"
+                    Label="ConfirmPassword" For="@(() => Input.ConfirmPassword)" Variant="Variant.Text"
+                    InputType="InputType.Password" FullWidth="true" Class="mb-4" Required="true"
+                    Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Lock" />
                 <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4"
                     FullWidth="true">
-                    LogIn
+                    Register
                 </MudButton>
             </EditForm>
         </MudItem>
@@ -57,52 +51,11 @@
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    [SupplyParameterFromForm(FormName = "LoginForm")]
+    [SupplyParameterFromForm(FormName = "RegisterForm")]
     private InputModel Input { get; set; } = new InputModel();
     private string errorMessage = string.Empty;
 
-    private async Task SignInAsync()
-    {
-        try
-        {
-            var claims = new List<Claim>
-{
-new Claim(ClaimTypes.Email, Input.Email),
-new Claim(ClaimTypes.Role, "Admin")
-};
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = Input.RememberMe,
-                ExpiresUtc = DateTimeOffset.UtcNow.Add(
-            Input.RememberMe ? TimeSpan.FromDays(30) : TimeSpan.FromMinutes(30)),
-                AllowRefresh = true
-            };
-
-            await HttpContext.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            principal,
-            authProperties);
-
-            Navigation.NavigateTo("/", true);
-        }
-        catch (Exception ex)
-        {
-            if (ex.Message.Equals("Exception of type 'Microsoft.AspNetCore.Components.NavigationException' was thrown."))
-            {
-                throw;
-            }
-            else
-            {
-                errorMessage = "Login failed: " + ex.Message;
-            }
-        }
-    }
-
-    private void Register()
+    private void RegisterAsync()
     {
         if (HttpContext.User?.Identity?.IsAuthenticated == false)
         {
@@ -114,11 +67,6 @@ new Claim(ClaimTypes.Role, "Admin")
         }
     }
 
-    private void ForgotPassword()
-    {
-
-    }
-
     public sealed class InputModel
     {
         [Required(ErrorMessage = "Email cannot be empty")]
@@ -128,10 +76,13 @@ new Claim(ClaimTypes.Role, "Admin")
 
         [Required(ErrorMessage = "Password cannot be empty")]
         [DataType(DataType.Password)]
-        [StringLength(20, MinimumLength = 1, ErrorMessage = "1-20 length")]
+        [StringLength(20, MinimumLength = 3, ErrorMessage = "1-20 length")]
         public string Password { get; set; } = string.Empty;
 
-        public bool RememberMe { get; set; } = true;
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 }
 
