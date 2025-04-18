@@ -1,40 +1,49 @@
 ﻿@page "/Account/Register"
 @using System.ComponentModel.DataAnnotations
+@using FileGrid.Entities
 @using FileGrid.Entities.Dto
+@using FileGrid.Services
+@using FileGrid.Services.Interface
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
 @inject NavigationManager Navigation
+@inject FileGridContext DbContext
+@inject IAuthService AuthService
 
 <MudPaper Class="mx-auto mt-12 pa-4" Elevation="5" Style="max-width:600px;">
     <MudGrid Justify="Justify.Center">
-        <MudItem xs="7">
+        <MudItem lg="10">
             <MudText Typo="Typo.h3" Align="Align.Center" Class="my-4">File Grid</MudText>
             <EditForm Model=@Input OnValidSubmit="RegisterAsync" FormName="RegisterForm">
                 <DataAnnotationsValidator />
-                <MudStaticTextField @bind-Value="@Input.Email" name="Input.Email" Label="Email"
-                    For="@(() => Input.Email)" FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.Start"
+                <MudStaticTextField @bind-Value="@Input.Email" name="Input.Email" Label="邮箱" For="@(() => Input.Email)"
+                    FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Outlined.Email" />
-                <MudStaticTextField @bind-Value="@Input.Password" name="Input.Password" Label="Password"
+                <MudStaticTextField @bind-Value="@Input.Password" name="Input.Password" Label="密码"
                     For="@(() => Input.Password)" Variant="Variant.Text" InputType="InputType.Password" FullWidth="true"
                     Class="mb-4" Required="true" Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Outlined.Lock" />
-                <MudStaticTextField @bind-Value="@Input.ConfirmPassword" name="Input.ConfirmPassword"
-                    Label="ConfirmPassword" For="@(() => Input.ConfirmPassword)" Variant="Variant.Text"
-                    InputType="InputType.Password" FullWidth="true" Class="mb-4" Required="true"
-                    Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Lock" />
+                <MudStaticTextField @bind-Value="@Input.ConfirmPassword" name="Input.ConfirmPassword" Label="确认密码"
+                    For="@(() => Input.ConfirmPassword)" Variant="Variant.Text" InputType="InputType.Password"
+                    FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Outlined.Lock" />
+                <MudStaticTextField @bind-Value="@Input.InvitationCode" name="Input.InvitationCode" Label="邀请码"
+                    For="@(() => Input.InvitationCode)" Variant="Variant.Text" InputType="InputType.Text"
+                    FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Outlined.Key" />
                 <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4"
                     FullWidth="true">
-                    Register
+                    注册
                 </MudButton>
             </EditForm>
         </MudItem>
         <MudItem>
             <MudStack Class="mb-4" Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center">
-                <MudText Typo="Typo.body2">Don't have an account?</MudText>
-                <MudLink Href="/Account/Register" Typo="Typo.body2" Color="Color.Primary"><b>Create an
-                        account</b>
+                <MudText Typo="Typo.body2">已有账户？</MudText>
+                <MudLink Href="/Account/Login" Typo="Typo.body2" Color="Color.Primary"><b>登陆</b>
                 </MudLink>
             </MudStack>
         </MudItem>
@@ -55,11 +64,26 @@
     private InputModel Input { get; set; } = new InputModel();
     private string errorMessage = string.Empty;
 
-    private void RegisterAsync()
+    private async Task RegisterAsync()
     {
         if (HttpContext.User?.Identity?.IsAuthenticated == false)
         {
-            Navigation.NavigateTo("/Account/register");
+            if (await DbContext.Users.AnyAsync(x => x.Email == Input.Email))
+            {
+                errorMessage = "已存在相同邮箱";
+                return;
+            }
+            var user = new User
+            {
+                Email = Input.Email,
+                AccountType = Utils.AccountType.God,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                PasswordHash = AuthService.HashPassword(Input.Password)
+            };
+            await DbContext.Users.AddAsync(user);
+            await DbContext.SaveChangesAsync();
+            Navigation.NavigateTo("/Account/Login");
         }
         else
         {
@@ -69,20 +93,25 @@
 
     public sealed class InputModel
     {
-        [Required(ErrorMessage = "Email cannot be empty")]
-        [EmailAddress(ErrorMessage = "Invalid Email")]
+        [Required(ErrorMessage = "邮箱不能为空")]
+        [EmailAddress(ErrorMessage = "非法邮箱")]
         [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Password cannot be empty")]
+        [Required(ErrorMessage = "密码不能为空")]
         [DataType(DataType.Password)]
         [StringLength(20, MinimumLength = 3, ErrorMessage = "1-20 length")]
         public string Password { get; set; } = string.Empty;
 
         [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        [Display(Name = "确认密码")]
+        [Compare("Password", ErrorMessage = "与密码不一致")]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        [DataType(DataType.Text)]
+        [Display(Name = "邀请码")]
+        [Required(ErrorMessage = "邀请码不能为空")]
+        public string InvitationCode { get; set; } = string.Empty;
     }
 }
 

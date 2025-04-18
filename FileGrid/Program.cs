@@ -5,12 +5,16 @@ using Minio;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using FileGrid.Utils.Enum;
+using FileGrid.Services.Interface;
+using FileGrid.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add db context
 builder.Services.AddDbContext<FileGrid.Entities.FileGridContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("FileGrid")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("FileGrid")),
+    ServiceLifetime.Scoped);
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
@@ -44,6 +48,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                     options.SlidingExpiration = true;
                 });
 builder.Services.AddAntiforgery();
+builder.Services.Configure<HashOptions>(
+    builder.Configuration.GetSection("HashOptions"));
+builder.Services.AddSingleton<IAuthService, AuthService>();
 
 // builder.Services.Configure<CookiePolicyOptions>(options =>
 //             {

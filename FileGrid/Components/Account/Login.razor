@@ -1,29 +1,34 @@
 ﻿@page "/Account/Login"
 @using System.ComponentModel.DataAnnotations
+@using FileGrid.Entities
 @using FileGrid.Entities.Dto
+@using FileGrid.Services.Interface
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
 @inject NavigationManager Navigation
+@inject FileGridContext FileGridContext
+@inject IAuthService AuthService
 
 <MudPaper Class="mx-auto mt-12 pa-4" Elevation="5" Style="max-width:600px;">
     <MudGrid Justify="Justify.Center">
-        <MudItem xs="7">
+        <MudItem lg="9">
             <MudText Typo="Typo.h3" Align="Align.Center" Class="my-4">File Grid</MudText>
             <EditForm Model=@Input OnValidSubmit="SignInAsync" FormName="LoginForm">
                 <DataAnnotationsValidator />
-                <MudStaticTextField @bind-Value="@Input.Email" name="Input.Email" Label="Email"
-                    For="@(() => Input.Email)" FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.End"
+                <MudStaticTextField @bind-Value="@Input.Email" name="Input.Email" Label="邮箱" For="@(() => Input.Email)"
+                    FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.End"
                     AdornmentIcon="@Icons.Material.Outlined.Email" />
-                <MudStaticTextField @bind-Value="@Input.Password" name="Input.Password" Label="Password"
+                <MudStaticTextField @bind-Value="@Input.Password" name="Input.Password" Label="密码"
                     For="@(() => Input.Password)" Variant="Variant.Text" InputType="InputType.Password" FullWidth="true"
                     Class="mb-4" Required="true" Adornment="Adornment.End"
                     AdornmentIcon="@Icons.Material.Outlined.Visibility"
                     AdornmentToggledIcon="@Icons.Material.Outlined.VisibilityOff"
                     AdornmentClickFunction="showPassword" />
                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="2">
-                    <MudStaticSwitch Label="Remember Me" @bind-Value="Input.RememberMe" Color="Color.Primary"
+                    <MudStaticSwitch Label="记住我" @bind-Value="Input.RememberMe" Color="Color.Primary"
                         Typo="Typo.body2" />
                     <MudLink Href="Account/ForgotPassword" Justify="Justify.Center" Typo="Typo.body2"
                         Color="Color.Primary">
@@ -38,9 +43,8 @@
         </MudItem>
         <MudItem>
             <MudStack Class="mb-4" Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center">
-                <MudText Typo="Typo.body2">Don't have an account?</MudText>
-                <MudLink Href="/Account/Register" Typo="Typo.body2" Color="Color.Primary"><b>Create an
-                        account</b>
+                <MudText Typo="Typo.body2">还没有账户？</MudText>
+                <MudLink Href="/Account/Register" Typo="Typo.body2" Color="Color.Primary"><b>注册</b>
                 </MudLink>
             </MudStack>
         </MudItem>
@@ -65,10 +69,22 @@
     {
         try
         {
+            var user = await FileGridContext.Users.FirstOrDefaultAsync(x => x.Email == Input.Email);
+            if (user == null)
+            {
+                errorMessage = "用户不存在";
+                return;
+            }
+            else if (!AuthService.VerifyPassword(Input.Password, user.PasswordHash))
+            {
+                errorMessage = "密码错误";
+                return;
+            }
             var claims = new List<Claim>
 {
+new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
 new Claim(ClaimTypes.Email, Input.Email),
-new Claim(ClaimTypes.Role, "Admin")
+new Claim(ClaimTypes.Role, user.AccountType.ToString())
 };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -130,14 +146,12 @@ new Claim(ClaimTypes.Role, "Admin")
         [DataType(DataType.Password)]
         [StringLength(20, MinimumLength = 1, ErrorMessage = "1-20 length")]
         public string Password { get; set; } = string.Empty;
-
         public bool RememberMe { get; set; } = true;
     }
 }
 
 <script>
     let timeoutId;
-
     function showPassword(inputElement, button) {
         if (inputElement.type === 'password') {
             inputElement.type = 'text';

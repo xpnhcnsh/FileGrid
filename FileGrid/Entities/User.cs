@@ -7,8 +7,8 @@ public class User
 {
     [Key]
     public Guid Id { get; set; }
-    [Required]
-    public required string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
+
     [Required]
     [EmailAddress]
     public required string Email { get; set; }
