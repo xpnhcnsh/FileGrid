@@ -84,7 +84,7 @@
 {
 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
 new Claim(ClaimTypes.Email, Input.Email),
-new Claim(ClaimTypes.Role, user.AccountType.ToString())
+new Claim(ClaimTypes.Role, user.UserGroup.ToString())
 };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

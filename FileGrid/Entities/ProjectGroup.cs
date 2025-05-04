@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace FileGrid.Entities;
 
 /// <summary>
-/// 项目组Model
+/// 项目组
 /// </summary>
 public class ProjectGroup
 {
@@ -13,7 +13,5 @@ public class ProjectGroup
     [Required]
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public ICollection<Guid> UserIds { get; set; } = [];
-    public virtual ICollection<User> Users { get; set; } = [];
-
+    public virtual ICollection<UserProjectGroup> UserProjectGroups { get; set; } = [];
 }

@@ -6,9 +6,9 @@ namespace FileGrid.Entities;
 public class UserProjectGroup
 {
     [Required]
-    public required int UserId { get; set; }
+    public required Guid UserId { get; set; }
     [Required]
     public required int ProjectGroupId { get; set; }
-    public virtual User User { get; set; }
-    public virtual ProjectGroup Group { get; set; }
+    public virtual User User { get; set; } = null!;
+    public virtual ProjectGroup Group { get; set; } = null!;
 }

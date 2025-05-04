@@ -9,5 +9,5 @@ public class Permission
     [Required]
     public string PermissionName { get; set; } = null!;
 
-    public ICollection<User> Users { get; set; } = [];
+    public virtual ICollection<UserPermission> UserPermissions { get; set; } = [];
 }

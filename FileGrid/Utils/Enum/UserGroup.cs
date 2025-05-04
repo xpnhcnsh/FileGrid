@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FileGrid.Utils;
 
-public enum AccountType
+public enum UserGroup
 {
     God = 0, //所有权限
     CCTEGL1, //所有人员、项目信息

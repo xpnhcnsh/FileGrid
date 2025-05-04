@@ -76,7 +76,7 @@
             var user = new User
             {
                 Email = Input.Email,
-                AccountType = Utils.AccountType.God,
+                UserGroup = Utils.UserGroup.God,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 PasswordHash = AuthService.HashPassword(Input.Password)

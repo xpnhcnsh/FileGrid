@@ -11,7 +11,9 @@ public class Resource
     [Required]
     public required string BucketName { get; set; } = null!;
     [Required]
-    public required string Path { get; set; } = null!;
+    public required string FullPath { get; set; } = null!;
+    [Required]
+    public required ResourceType ResourceType { get; set; }
     public required string Version { get; set; } = "0.1"; //默认刚上传的文件版本为0.1
     [Required]
     public required DateTime CreatedAt { get; set; }

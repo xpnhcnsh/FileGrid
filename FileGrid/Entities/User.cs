@@ -13,30 +13,28 @@ public class User
     [EmailAddress]
     public required string Email { get; set; }
     [Required]
-    public required AccountType AccountType { get; set; }
+    public UserGroup UserGroup { get; set; }
     [Required]
-    public required DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
     [Required]
-    public required DateTime UpdatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    [Required]
     public string PasswordHash { get; set; } = null!;
+
     // 组织信息（所有用户）
-    public int CompanyId { get; set; }       // 所属公司
+    public int? CompanyId { get; set; }       // 所属公司
     public virtual Company? Company { get; set; }
-    public int DepartmentId { get; set; }    // 所属部门
+    public int? DepartmentId { get; set; }    // 所属部门
     public virtual Department? Department { get; set; }
     public string? JobTitle { get; set; }     // 职务名称
-
-    // 角色类型（仅CCTEG用户需要）
-    public int? UserGroupId { get; set; }
-    public virtual UserGroup? UserGroup { get; set; }
-    public ICollection<Role> Roles { get; set; } = [];
+    public string? PhoneNumber { get; set; }  // 手机号码
+    public ICollection<UserRole> UserRoles { get; set; } = [];
+    public ICollection<UserPermission> UserPermissions { get; set; } = [];
     public ICollection<Share> Shares { get; set; } = [];
-    public ICollection<Share> SharedWithMe { get; set; } = [];
+    public ICollection<ShareUser> SharedWithMe { get; set; } = [];
     public ICollection<Resource> UploadedResources { get; set; } = [];
-    public ICollection<Permission> Permissions { get; set; } = [];
-    // 关联表（权限控制）
-    public virtual ICollection<UserProjectGroup> AccessibleProjectGroup { get; set; }  // L2可访问项目组
-    public virtual ICollection<UserProject> AccessibleProjects { get; set; }     // L3可访问项目
+    public virtual ICollection<UserProjectGroup> AccessibleProjectGroups { get; set; } = [];  // L2可访问项目组
+    public virtual ICollection<UserProject> AccessibleProjects { get; set; } = [];     // L3可访问项目
 }
 
 
