@@ -1,4 +1,3 @@
-/Users/xpnhcnsh/Code/FileGrid/FileGrid/bin/Debug/net9.0/appsettings.Development.json
 /Users/xpnhcnsh/Code/FileGrid/FileGrid/bin/Debug/net9.0/appsettings.json
 /Users/xpnhcnsh/Code/FileGrid/FileGrid/bin/Debug/net9.0/BlazorDebugProxy/BrowserDebugHost.dll
 /Users/xpnhcnsh/Code/FileGrid/FileGrid/bin/Debug/net9.0/BlazorDebugProxy/BrowserDebugHost.runtimeconfig.json

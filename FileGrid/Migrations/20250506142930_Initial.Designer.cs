@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FileGrid.Migrations
 {
     [DbContext(typeof(FileGridContext))]
-    [Migration("20250504140105_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250506142930_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -88,6 +88,52 @@ namespace FileGrid.Migrations
                     b.HasIndex("CompanyId1");
 
                     b.ToTable("Departments");
+                });
+
+            modelBuilder.Entity("FileGrid.Entities.InvitationCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ExpiredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UsedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserGroup")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan>("ValidDurationHours")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.HasIndex("UsedById");
+
+                    b.ToTable("InvitationCodes");
                 });
 
             modelBuilder.Entity("FileGrid.Entities.Permission", b =>
@@ -629,6 +675,24 @@ namespace FileGrid.Migrations
                         .HasForeignKey("CompanyId1");
 
                     b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("FileGrid.Entities.InvitationCode", b =>
+                {
+                    b.HasOne("FileGrid.Entities.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FileGrid.Entities.User", "UsedBy")
+                        .WithMany()
+                        .HasForeignKey("UsedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("UsedBy");
                 });
 
             modelBuilder.Entity("FileGrid.Entities.Project", b =>

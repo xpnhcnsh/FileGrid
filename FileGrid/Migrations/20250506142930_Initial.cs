@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FileGrid.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -138,6 +138,39 @@ namespace FileGrid.Migrations
                         name: "FK_Users_Departments_DepartmentId",
                         column: x => x.DepartmentId,
                         principalTable: "Departments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "InvitationCodes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiredAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ValidDurationHours = table.Column<TimeSpan>(type: "time", nullable: false),
+                    UsedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsUsed = table.Column<bool>(type: "bit", nullable: false),
+                    UsedById = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UserGroup = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InvitationCodes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_InvitationCodes_Users_CreatorId",
+                        column: x => x.CreatorId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_InvitationCodes_Users_UsedById",
+                        column: x => x.UsedById,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -568,6 +601,16 @@ namespace FileGrid.Migrations
                 column: "CompanyId1");
 
             migrationBuilder.CreateIndex(
+                name: "IX_InvitationCodes_CreatorId",
+                table: "InvitationCodes",
+                column: "CreatorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InvitationCodes_UsedById",
+                table: "InvitationCodes",
+                column: "UsedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProjectFiles_ProjectResourceId",
                 table: "ProjectFiles",
                 column: "ProjectResourceId");
@@ -697,6 +740,9 @@ namespace FileGrid.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_Companies_Users_ContactUserId",
                 table: "Companies");
+
+            migrationBuilder.DropTable(
+                name: "InvitationCodes");
 
             migrationBuilder.DropTable(
                 name: "ProjectFiles");

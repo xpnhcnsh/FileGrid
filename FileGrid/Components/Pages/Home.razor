@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.Security.Claims
 @attribute [Authorize]
 @inject AuthenticationStateProvider AuthProvider
 @inject NavigationManager Navigation
@@ -7,9 +8,11 @@
 <PageTitle>Home</PageTitle>
 
 <p>@AuthState</p>
+<p>@UserGroup</p>
 
 @code {
-    private string AuthState = "未登录";
+    private string? AuthState = "未登录";
+    private string? UserGroup = "未知";
     protected override async Task OnInitializedAsync()
     {
         await CheckAuthState();
@@ -17,11 +20,12 @@
 
     private async Task CheckAuthState()
     {
-        var state = await AuthProvider.GetAuthenticationStateAsync();
-        var user = state.User;
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
         if (user.Identity != null && user.Identity.IsAuthenticated)
         {
             AuthState = $"用户已登录，用户名：{user.Identity.Name}";
+            UserGroup = $"用户组：{user.FindFirst(ClaimTypes.Role)?.Value ?? "未知"}";
         }
         else
         {

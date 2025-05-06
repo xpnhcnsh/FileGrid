@@ -30,6 +30,7 @@ namespace FileGrid.Entities
         public DbSet<UserProject> UserProjects { get; set; }
         public DbSet<UserProjectGroup> UserProjectGroups { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<InvitationCode> InvitationCodes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -393,6 +394,29 @@ namespace FileGrid.Entities
                     .WithMany(r => r.UserRoles)
                     .HasForeignKey(e => e.RoleId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // InvitationCode
+            modelBuilder.Entity<InvitationCode>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.UserGroup)
+                    .IsRequired()
+                    .HasConversion<string>();
+
+                entity.Property(e => e.Code)
+                    .IsRequired();
+
+                entity.HasOne(e => e.Creator)
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatorId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.UsedBy)
+                    .WithMany()
+                    .HasForeignKey(e => e.UsedById)
+                    .OnDelete(DeleteBehavior.Restrict); // 当用户被删除时保留邀请码记录
             });
 
             base.OnModelCreating(modelBuilder);

@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Migrations/" />
+    <None Include="appsettings.json" />
   </ItemGroup>
 
 
