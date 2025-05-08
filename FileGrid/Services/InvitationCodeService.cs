@@ -179,7 +179,7 @@ public class InvitationCodeService : IInvitationCodeService
         var codes = await _context.InvitationCodes
             .AsNoTracking()
             .Include(ic => ic.Creator)
-            .OrderByDescending(ic => ic.ExpiredAt) // 按过期时间倒序，示例排序
+            .Include(ic => ic.UsedBy)
             .ToListAsync();
 
         return codes;
@@ -189,7 +189,7 @@ public class InvitationCodeService : IInvitationCodeService
     {
         var toDelete = await _context.InvitationCodes
             .FirstOrDefaultAsync(c => c.Id == CodeId);
-        if (toDelete != null)
+        if (toDelete != null && toDelete.IsUsed == false)
         {
             _context.InvitationCodes.Remove(toDelete);
             await _context.SaveChangesAsync();

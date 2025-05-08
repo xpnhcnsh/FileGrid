@@ -4,34 +4,38 @@
 @using FileGrid.Services.Interface
 @using FileGrid.Utils
 @using System.Security.Claims
+@using System.Reflection
+@using System.ComponentModel
 @attribute [Authorize(Roles = "God,CCTEGL0,CCTEGL1")]
 @inject AuthenticationStateProvider AuthProvider
 @inject IInvitationCodeService InvitationCodeService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
-<MudTabs>
+<MudTabs Class="mt-4">
     <MudTabPanel Text="邀请码">
-        <MudPaper Class="mt-10">
-            <MudGrid Class="flex justify-center align-center">
-                <MudItem xs="12" sm="4">
-                    <MudSelect T="UserGroup" @bind-Value="_selectedUserGroup" Label="用户组" Variant="Variant.Outlined">
+        <MudPaper Class="mt-10 elevation-4">
+            <MudGrid Class="flex justify-center align-center ml-4 mr-4">
+                <MudItem xs="12" sm="3">
+                    <MudSelect T="UserGroup" @bind-Value="_selectedUserGroup" Label="用户组" Variant="Variant.Outlined"
+                        HelperText="@($"用户组权限：{GetGroupDescription(_selectedUserGroup)}")">
                         @foreach (var group in Enum.GetValues<UserGroup>().Where(g => g != UserGroup.God))
                         {
                             <MudSelectItem Value="@group">@group.ToString()</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudSelect T="string" @bind-Value="_selectedDuration" Label="有效期" Variant="Variant.Outlined">
+                <MudItem xs="12" sm="3">
+                    <MudSelect T="string" @bind-Value="_selectedDuration" Label="有效期" Variant="Variant.Outlined"
+                        HelperText="邀请码有效期">
                         @foreach (var duration in _durationOptions.Keys)
                         {
                             <MudSelectItem Value="@duration">@duration</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="12" sm="4" Class="d-flex align-items-end">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateInviteCode">
+                <MudItem xs="12" sm="3" Class="d-flex mb-3">
+                    <MudButton Variant=" Variant.Filled" Color="Color.Primary" OnClick="CreateInviteCode">
                         新建邀请码
                     </MudButton>
                 </MudItem>
@@ -44,6 +48,7 @@
                     <MudTh>状态</MudTh>
                     <MudTh>过期时间</MudTh>
                     <MudTh>创建者邮箱</MudTh>
+                    <MudTh>使用者邮箱</MudTh>
                     <MudTh>操作</MudTh>
                 </HeaderContent>
                 <RowTemplate>
@@ -56,6 +61,7 @@
                     </MudTd>
                     <MudTd>@context.ExpiredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</MudTd>
                     <MudTd>@context.Creator?.Email</MudTd>
+                    <MudTd>@context.UsedBy?.Email</MudTd>
                     <MudTd>
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
                             OnClick="@(() => DeleteInviteCode(context.Id))" />
@@ -96,10 +102,7 @@
     private async Task LoadInvitationCodes()
     {
         var codes = await InvitationCodeService.GetAllInvitationCodesAsync();
-        _invitationCodes = codes
-        .OrderByDescending(c => c.ExpiredAt)
-        .ThenBy(c => c.IsUsed)
-        .ToList();
+        _invitationCodes = codes.OrderByDescending(c => c.ExpiredAt).ThenBy(c => c.IsUsed).ToList();
     }
 
     private async Task CreateInviteCode()
@@ -139,5 +142,13 @@
     {
         if (code.IsUsed) return "已使用";
         return code.ExpiredAt > DateTime.UtcNow ? "有效" : "已过期";
+    }
+
+    // 通过 DescriptionAttribute 获取枚举说明
+    private static string GetGroupDescription(UserGroup group)
+    {
+        var member = typeof(UserGroup).GetMember(group.ToString()).FirstOrDefault();
+        var desc = member?.GetCustomAttribute<DescriptionAttribute>()?.Description;
+        return desc ?? "无说明";
     }
 }
