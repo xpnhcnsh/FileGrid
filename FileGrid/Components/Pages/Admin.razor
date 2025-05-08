@@ -1,7 +1,143 @@
 ﻿@page "/Admin"
+@using FileGrid.Entities
+@using FileGrid.Services
+@using FileGrid.Services.Interface
+@using FileGrid.Utils
+@using System.Security.Claims
 @attribute [Authorize(Roles = "God,CCTEGL0,CCTEGL1")]
-<h3>Admin</h3>
+@inject AuthenticationStateProvider AuthProvider
+@inject IInvitationCodeService InvitationCodeService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudTabs>
+    <MudTabPanel Text="邀请码">
+        <MudPaper Class="mt-10">
+            <MudGrid Class="flex justify-center align-center">
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="UserGroup" @bind-Value="_selectedUserGroup" Label="用户组" Variant="Variant.Outlined">
+                        @foreach (var group in Enum.GetValues<UserGroup>().Where(g => g != UserGroup.God))
+                        {
+                            <MudSelectItem Value="@group">@group.ToString()</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="string" @bind-Value="_selectedDuration" Label="有效期" Variant="Variant.Outlined">
+                        @foreach (var duration in _durationOptions.Keys)
+                        {
+                            <MudSelectItem Value="@duration">@duration</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="d-flex align-items-end">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateInviteCode">
+                        新建邀请码
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+
+            <MudTable Items="_invitationCodes" Hover="true" Class="mt-4">
+                <HeaderContent>
+                    <MudTh>邀请码</MudTh>
+                    <MudTh>用户组</MudTh>
+                    <MudTh>状态</MudTh>
+                    <MudTh>过期时间</MudTh>
+                    <MudTh>创建者邮箱</MudTh>
+                    <MudTh>操作</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Code</MudTd>
+                    <MudTd>@context.UserGroup</MudTd>
+                    <MudTd>
+                        <MudChip T="string" Color="@GetStatusColor(context)" Variant="Variant.Filled">
+                            @GetStatusText(context)
+                        </MudChip>
+                    </MudTd>
+                    <MudTd>@context.ExpiredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</MudTd>
+                    <MudTd>@context.Creator?.Email</MudTd>
+                    <MudTd>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                            OnClick="@(() => DeleteInviteCode(context.Id))" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    </MudTabPanel>
+</MudTabs>
 
 @code {
+    private List<InvitationCode> _invitationCodes = new();
+    private UserGroup _selectedUserGroup = UserGroup.CCTEGL0;
+    private string _selectedDuration = "1天";
+    private Guid _currentUserId;
 
+    private readonly Dictionary<string, TimeSpan> _durationOptions = new()
+{
+{ "1小时", TimeSpan.FromHours(1) },
+{ "1天", TimeSpan.FromDays(1) },
+{ "1周", TimeSpan.FromDays(7) },
+{ "永久", TimeSpan.FromDays(365 * 100) } // 100年视为永久
+};
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+        {
+            _currentUserId = userId;
+        }
+
+        await LoadInvitationCodes();
+    }
+
+    private async Task LoadInvitationCodes()
+    {
+        var codes = await InvitationCodeService.GetAllInvitationCodesAsync();
+        _invitationCodes = codes
+        .OrderByDescending(c => c.ExpiredAt)
+        .ThenBy(c => c.IsUsed)
+        .ToList();
+    }
+
+    private async Task CreateInviteCode()
+    {
+        if (!_durationOptions.TryGetValue(_selectedDuration, out var duration))
+        {
+            Snackbar.Add("请选择有效的有效期选项。", Severity.Error);
+            return;
+        }
+
+        var code = await InvitationCodeService.GenerateInviteCodeAsync(_selectedUserGroup, duration, _currentUserId);
+        Snackbar.Add($"邀请码已生成：{code}", Severity.Success);
+        await LoadInvitationCodes();
+    }
+
+    private async Task DeleteInviteCode(int id)
+    {
+        var result = await InvitationCodeService.DeleteInviteCodeAsync(id);
+        if (result)
+        {
+            Snackbar.Add("邀请码已删除。", Severity.Success);
+            await LoadInvitationCodes();
+        }
+        else
+        {
+            Snackbar.Add("删除邀请码失败。", Severity.Error);
+        }
+    }
+
+    private Color GetStatusColor(InvitationCode code)
+    {
+        if (code.IsUsed) return Color.Error;
+        return code.ExpiredAt > DateTime.UtcNow ? Color.Success : Color.Warning;
+    }
+
+    private string GetStatusText(InvitationCode code)
+    {
+        if (code.IsUsed) return "已使用";
+        return code.ExpiredAt > DateTime.UtcNow ? "有效" : "已过期";
+    }
 }

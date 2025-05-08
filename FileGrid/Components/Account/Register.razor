@@ -4,6 +4,7 @@
 @using FileGrid.Entities.Dto
 @using FileGrid.Services
 @using FileGrid.Services.Interface
+@using FileGrid.Utils.Class
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
 @using System.Security.Claims
@@ -11,28 +12,29 @@
 @using Microsoft.EntityFrameworkCore
 @using Utils
 @inject NavigationManager Navigation
-@inject FileGridContext DbContext
+@inject FileGridContext _context
 @inject IAuthService AuthService
+@inject IInvitationCodeService InvitationCodeService
 
 <MudPaper Class="mx-auto mt-12 pa-4" Elevation="5" Style="max-width:600px;">
     <MudGrid Justify="Justify.Center">
         <MudItem lg="10">
             <MudText Typo="Typo.h3" Align="Align.Center" Class="my-4">File Grid</MudText>
-            <EditForm Model=@Input OnValidSubmit="RegisterAsync" FormName="RegisterForm">
+            <EditForm Model=@registerModel OnValidSubmit="RegisterAsync" FormName="RegisterForm">
                 <DataAnnotationsValidator />
-                <MudStaticTextField @bind-Value="@Input.Email" name="Input.Email" Label="邮箱" For="@(() => Input.Email)"
-                    FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.Start"
+                <MudStaticTextField @bind-Value="@registerModel.Email" name="registerModel.Email" Label="邮箱"
+                    For="@(() => registerModel.Email)"                    FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Outlined.Email" />
-                <MudStaticTextField @bind-Value="@Input.Password" name="Input.Password" Label="密码"
-                    For="@(() => Input.Password)" Variant="Variant.Text" InputType="InputType.Password" FullWidth="true"
+                <MudStaticTextField @bind-Value="@registerModel.Password" name="registerModel.Password" Label="密码"
+                    For="@(() => registerModel.Password)" Variant="Variant.Text" InputType="InputType.Password" FullWidth="true"
                     Class="mb-4" Required="true" Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Outlined.Lock" />
-                <MudStaticTextField @bind-Value="@Input.ConfirmPassword" name="Input.ConfirmPassword" Label="确认密码"
-                    For="@(() => Input.ConfirmPassword)" Variant="Variant.Text" InputType="InputType.Password"
+                <MudStaticTextField @bind-Value="@registerModel.ConfirmPassword" name="registerModel.ConfirmPassword" Label="确认密码"
+                    For="@(() => registerModel.ConfirmPassword)" Variant="Variant.Text" InputType="InputType.Password"
                     FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Outlined.Lock" />
-                <MudStaticTextField @bind-Value="@Input.InvitationCode" name="Input.InvitationCode" Label="邀请码"
-                    For="@(() => Input.InvitationCode)" Variant="Variant.Text" InputType="InputType.Text"
+                <MudStaticTextField @bind-Value="@registerModel.InvitationCode" name="registerModel.InvitationCode" Label="邀请码"
+                    For="@(() => registerModel.InvitationCode)" Variant="Variant.Text" InputType="InputType.Text"
                     FullWidth="true" Class="mb-4" Required="true" Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Outlined.Key" />
                 <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4"
@@ -57,48 +59,61 @@
 </MudPaper>
 
 @code {
-
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
     [SupplyParameterFromForm(FormName = "RegisterForm")]
-    private InputModel Input { get; set; } = new InputModel();
+    private RegisterModel registerModel { get; set; } = new RegisterModel();
     private string errorMessage = string.Empty;
 
     private async Task RegisterAsync()
     {
-        if (HttpContext.User?.Identity?.IsAuthenticated == false)
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            if (await DbContext.Users.AnyAsync(x => x.Email == Input.Email))
+            if (HttpContext.User?.Identity?.IsAuthenticated == false)
             {
-                errorMessage = "已存在相同邮箱";
-                return;
+                if (await _context.Users.AnyAsync(x => x.Email == registerModel.Email))
+                {
+                    errorMessage = "已存在相同邮箱";
+                    return;
+                }
+                if (registerModel.Password != registerModel.ConfirmPassword)
+                {
+                    errorMessage = "两次密码不一致";
+                    return;
+                }
+                var user = new User
+                {
+                    Email = registerModel.Email.ToLower().Trim(),
+                    UserGroup = InvitationCodeService.DecodeInviteCode(registerModel.InvitationCode),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    PasswordHash = AuthService.HashPassword(registerModel.Password)
+                };
+                await _context.Users.AddAsync(user);
+                await InvitationCodeService.ConsumeInviteCodeAsync(registerModel.InvitationCode, user.Id);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                Navigation.NavigateTo("/Account/login");
             }
-            if (Input.Password != Input.ConfirmPassword)
+            else
             {
-                errorMessage = "两次密码不一致";
-                return;
+                Navigation.NavigateTo("/", true);
             }
-            var userGroup = UserGroup.CCTEGL1;
-            var user = new User
-            {
-                Email = Input.Email,
-                UserGroup = Input.InvitationCode == "god" ? UserGroup.God : userGroup,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                PasswordHash = AuthService.HashPassword(Input.Password)
-            };
-            await DbContext.Users.AddAsync(user);
-            await DbContext.SaveChangesAsync();
-            Navigation.NavigateTo("/Account/Login");
         }
-        else
+        catch (NavigationException){
+            Navigation.NavigateTo("/Account/login");
+        }
+        catch (Exception ex)
         {
-            Navigation.NavigateTo("/", true);
+            errorMessage = ex.Message;
+            await transaction.RollbackAsync();
+            StateHasChanged();
         }
     }
 
-    public sealed class InputModel
+    public sealed class RegisterModel
     {
         [Required(ErrorMessage = "邮箱不能为空")]
         [EmailAddress(ErrorMessage = "非法邮箱")]

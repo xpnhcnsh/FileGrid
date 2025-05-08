@@ -51,6 +51,7 @@ builder.Services.AddAntiforgery();
 builder.Services.Configure<HashOptions>(
     builder.Configuration.GetSection("HashOptions"));
 builder.Services.AddSingleton<IAuthService, AuthService>();
+builder.Services.AddScoped<IInvitationCodeService, InvitationCodeService>();
 
 // builder.Services.Configure<CookiePolicyOptions>(options =>
 //             {

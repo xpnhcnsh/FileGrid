@@ -121,8 +121,8 @@ namespace FileGrid.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("ValidDurationHours")
-                        .HasColumnType("time");
+                    b.Property<long>("ValidDurationHours")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 

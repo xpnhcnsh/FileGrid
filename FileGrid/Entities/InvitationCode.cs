@@ -21,7 +21,7 @@ public class InvitationCode
     [Required]
     public DateTime ExpiredAt { get; set; }
     [Required]
-    public TimeSpan ValidDurationHours { get; set; }
+    public TimeSpan ValidDurationHours { get; set; }  //有效期
     public DateTime? UsedAt { get; set; }
     [Required]
     public bool IsUsed { get; set; } = false;

@@ -417,6 +417,12 @@ namespace FileGrid.Entities
                     .WithMany()
                     .HasForeignKey(e => e.UsedById)
                     .OnDelete(DeleteBehavior.Restrict); // 当用户被删除时保留邀请码记录
+
+                entity.Property(e => e.ValidDurationHours)
+                .HasColumnType("bigint")
+                .HasConversion(
+                    ts => ts.Ticks,
+                    ticks => TimeSpan.FromTicks(ticks));
             });
 
             base.OnModelCreating(modelBuilder);

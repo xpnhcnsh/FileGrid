@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FileGrid.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class ChangeValidDurationHoursToBigInt : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -152,7 +152,7 @@ namespace FileGrid.Migrations
                     CreatorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ExpiredAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ValidDurationHours = table.Column<TimeSpan>(type: "time", nullable: false),
+                    ValidDurationHours = table.Column<long>(type: "bigint", nullable: false),
                     UsedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsUsed = table.Column<bool>(type: "bit", nullable: false),
                     UsedById = table.Column<Guid>(type: "uniqueidentifier", nullable: true),

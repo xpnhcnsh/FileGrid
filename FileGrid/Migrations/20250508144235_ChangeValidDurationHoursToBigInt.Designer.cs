@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FileGrid.Migrations
 {
     [DbContext(typeof(FileGridContext))]
-    [Migration("20250506142930_Initial")]
-    partial class Initial
+    [Migration("20250508144235_ChangeValidDurationHoursToBigInt")]
+    partial class ChangeValidDurationHoursToBigInt
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -124,8 +124,8 @@ namespace FileGrid.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("ValidDurationHours")
-                        .HasColumnType("time");
+                    b.Property<long>("ValidDurationHours")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
