@@ -52,6 +52,7 @@ builder.Services.Configure<HashOptions>(
     builder.Configuration.GetSection("HashOptions"));
 builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddScoped<IInvitationCodeService, InvitationCodeService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // builder.Services.Configure<CookiePolicyOptions>(options =>
 //             {

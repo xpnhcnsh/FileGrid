@@ -1,14 +1,15 @@
 ﻿@using Microsoft.AspNetCore.Authentication
+@using System.Security.Claims
 @inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
 @inject IHostEnvironment HostEnvironment
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudLayout>
-
     <AuthorizeView>
         <Authorized>
             <MudAppBar Elevation="1">
@@ -17,7 +18,15 @@
                 <MudText Typo="Typo.h5" Class="ml-3">File Grid</MudText>
                 <MudSpacer />
                 <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="@Logout" />
+                <MudMenu>
+                    <ActivatorContent>
+                        <MudAvatar Color="Color.Primary">@Avatar</MudAvatar>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem Label="个人资料" OnClick="@((e) => { NavigationManager.NavigateTo("/profile"); })" />
+                        <MudMenuItem Label="退出登录" OnClick="@Logout" />
+                    </ChildContent>
+                </MudMenu>
             </MudAppBar>
             <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
                 <NavMenu />
@@ -48,27 +57,39 @@
     private bool _drawerOpen = true;
     private bool _isDarkMode = true;
     private MudTheme? _theme = null;
-    protected Task<AuthenticationState>? AuthenState { get; set; }
+    private string Avatar = string.Empty;
     protected async override Task OnInitializedAsync()
     {
-
-        base.OnInitialized();
-
-        if (AuthenState != null)
+        try
         {
-            var user = (await AuthenState)?.User;
-            if (user is not null && user.Identity?.IsAuthenticated == true)
+            await base.OnInitializedAsync();
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+            if (authState != null)
             {
-                NavigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}");
+                var user = (authState)?.User;
+                if (user is not null && user.Identity?.IsAuthenticated == true)
+                {
+                    @* NavigationManager.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(NavigationManager.Uri)}"); *@
+                    var temp = user.FindFirst(ClaimTypes.Name)?.Value ?? user.FindFirst(ClaimTypes.Email)?.Value ?? "U";
+                    if (!string.IsNullOrEmpty(temp))
+                    {
+                        Avatar = temp.Substring(0, 1).ToUpperInvariant();
+                    }
+                }
             }
-        }
 
-        _theme = new()
+            _theme = new()
+            {
+                PaletteLight = _lightPalette,
+                PaletteDark = _darkPalette,
+                LayoutProperties = new LayoutProperties()
+            };
+        }
+        catch (NavigationException ex)
         {
-            PaletteLight = _lightPalette,
-            PaletteDark = _darkPalette,
-            LayoutProperties = new LayoutProperties()
-        };
+
+        }
     }
 
     private void DrawerToggle()

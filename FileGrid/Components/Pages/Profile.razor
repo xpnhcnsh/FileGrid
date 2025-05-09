@@ -1,0 +1,89 @@
+﻿@page "/profile"
+@using FileGrid.Entities
+@using System.Security.Claims
+@using FileGrid.Services.Interface
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IUserService UserService
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudGrid Gutter="3">
+        <!-- 1. 头像 + 基本信息 -->
+        <MudItem xs="12">
+            <MudCard Elevation="1">
+                <MudCardHeader>
+                    <MudAvatar Size="Size.Large" Color="Color.Primary">@Avatar</MudAvatar>
+                    <div class="ml-4">
+                        <MudText Typo="Typo.h5">@Name</MudText>
+                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">@Email</MudText>
+                    </div>
+                </MudCardHeader>
+            </MudCard>
+        </MudItem>
+
+        <!-- 2. 组织 & 联系信息 -->
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="1">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">组织 & 联系</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText><strong>公司：</strong>@CompanyName</MudText>
+                    <MudText><strong>部门：</strong>@DepartmentName</MudText>
+                    <MudText><strong>职务：</strong>@JobTitle</MudText>
+                    <MudText><strong>电话：</strong>@PhoneNumber</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- 3. 项目组 & 项目权限 -->
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="1">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">项目 & 权限</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudList T="string" Dense="true">
+                        <MudListItem Icon="@Icons.Material.Filled.Group">所属组：@string.Join(", ", ProjectGroupNames)
+                        </MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.Work">可访问项目：@string.Join(", ", ProjectNames)
+                        </MudListItem>
+                    </MudList>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private string Avatar = "U";
+    private string Name = "未知用户";
+    private string Email = string.Empty;
+    private string CompanyName = "—";
+    private string DepartmentName = "—";
+    private string JobTitle = "—";
+    private string PhoneNumber = "—";
+    private List<string> ProjectGroupNames = new();
+    private List<string> ProjectNames = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            Email = user.FindFirst(ClaimTypes.Email)?.Value ?? "";
+            Name = user.FindFirst(ClaimTypes.Name)?.Value ?? Email;
+            Avatar = !string.IsNullOrEmpty(Name)
+            ? Name.Substring(0, 1).ToUpperInvariant()
+            : Email.Substring(0, 1).ToUpperInvariant();
+
+            var dto = await UserService.GetUserByIdAsync(Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value!));
+            CompanyName = dto.Company?.Name ?? "—";
+            DepartmentName = dto.Department?.Name ?? "—";
+            JobTitle = dto.JobTitle ?? "—";
+            PhoneNumber = dto.PhoneNumber ?? "—";
+            ProjectGroupNames = dto.AccessibleProjectGroups.Select(g => g.Group.Name).ToList();
+            ProjectNames = dto.AccessibleProjects.Select(p => p.Project.Name).ToList();
+        }
+    }
+}

@@ -11,18 +11,11 @@ using MudBlazor;
 
 namespace FileGrid.Services;
 
-public class InvitationCodeService : IInvitationCodeService
+public class InvitationCodeService(IConfiguration config, FileGridContext context) : IInvitationCodeService
 {
-    private readonly FileGridContext _context;
-    private readonly byte[] _key;
-    private readonly byte[] _iv;
-
-    public InvitationCodeService(IConfiguration config, FileGridContext context)
-    {
-        _key = Convert.FromBase64String(config["InvitationCode:Key"]);
-        _iv = Convert.FromBase64String(config["InvitationCode:IV"]);
-        _context = context;
-    }
+    private readonly FileGridContext _context = context;
+    private readonly byte[] _key = Convert.FromBase64String(config["InvitationCode:Key"]);
+    private readonly byte[] _iv = Convert.FromBase64String(config["InvitationCode:IV"]);
 
     /// <summary>
     /// 由外层统一savechanges()
