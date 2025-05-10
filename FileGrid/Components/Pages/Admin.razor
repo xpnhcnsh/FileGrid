@@ -1,4 +1,5 @@
 ﻿@page "/Admin"
+@using FileGrid.Components.Dialogs
 @using FileGrid.Entities
 @using FileGrid.Services
 @using FileGrid.Services.Interface
@@ -6,9 +7,11 @@
 @using System.Security.Claims
 @using System.Reflection
 @using System.ComponentModel
+@using FileGrid.Utils.Enum
 @attribute [Authorize(Roles = "God,CCTEGL0,CCTEGL1")]
 @inject AuthenticationStateProvider AuthProvider
 @inject IInvitationCodeService InvitationCodeService
+@inject ICompanyService CompanyService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -70,14 +73,53 @@
             </MudTable>
         </MudPaper>
     </MudTabPanel>
+
+    <MudTabPanel Text="公司管理">
+        <MudPaper Class="p-4 elevation-2">
+            <!-- 搜索 + 添加 -->
+            <MudGrid Gutter="2" AlignItems="Center">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_searchTerm" Placeholder="输入公司名称后按回车" Adornment="Adornment.Start"
+                        AdornmentIcon="@Icons.Material.Filled.Search"
+                        OnKeyUp="@(e => { if (e.Key == "Enter") SearchCompanies(); })" Immediate="true" Class="w-100" />
+                </MudItem>
+                <MudItem xs="12" sm="6" Class="d-flex justify-end">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddCompanyDialogAsync">
+                        添加公司
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+
+            <!-- 公司列表 -->
+            <MudTable Items="_filteredCompanies" Hover="true">
+                <HeaderContent>
+                    <MudTh>公司 ID</MudTh>
+                    <MudTh>公司名称</MudTh>
+                    <MudTh>描述</MudTh>
+                    <MudTh>操作</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="公司 ID">@context.Id</MudTd>
+                    <MudTd DataLabel="公司名称">@context.Name</MudTd>
+                    <MudTd DataLabel="描述">@context.Description</MudTd>
+                    <MudTd DataLabel="操作">
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                            OnClick="@(() => DeleteCompany(context.Id))" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    </MudTabPanel>
 </MudTabs>
 
+
 @code {
+
+    #region InvitationCode管理
     private List<InvitationCode> _invitationCodes = new();
     private UserGroup _selectedUserGroup = UserGroup.CCTEGL0;
     private string _selectedDuration = "1天";
     private Guid _currentUserId;
-
     private readonly Dictionary<string, TimeSpan> _durationOptions = new()
 {
 { "1小时", TimeSpan.FromHours(1) },
@@ -85,6 +127,16 @@
 { "1周", TimeSpan.FromDays(7) },
 { "永久", TimeSpan.FromDays(365 * 100) } // 100年视为永久
 };
+    #endregion
+
+    #region Company管理
+    private string _searchTerm = "";
+    private List<Company> _allCompanies = new();
+    private IEnumerable<Company> _filteredCompanies =>
+    string.IsNullOrWhiteSpace(_searchTerm)
+    ? _allCompanies
+    : _allCompanies.Where(c => c.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase));
+    #endregion
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,11 +147,10 @@
         {
             _currentUserId = userId;
         }
-
-        await LoadInvitationCodes();
     }
 
-    private async Task LoadInvitationCodes()
+    #region InvitationCode方法
+    private async Task LoadInvitationCodesAsync()
     {
         var codes = await InvitationCodeService.GetAllInvitationCodesAsync();
         _invitationCodes = codes.OrderByDescending(c => c.ExpiredAt).ThenBy(c => c.IsUsed).ToList();
@@ -115,7 +166,7 @@
 
         var code = await InvitationCodeService.GenerateInviteCodeAsync(_selectedUserGroup, duration, _currentUserId);
         Snackbar.Add($"邀请码已生成：{code}", Severity.Success);
-        await LoadInvitationCodes();
+        await LoadInvitationCodesAsync();
     }
 
     private async Task DeleteInviteCode(int id)
@@ -124,7 +175,7 @@
         if (result)
         {
             Snackbar.Add("邀请码已删除。", Severity.Success);
-            await LoadInvitationCodes();
+            await LoadInvitationCodesAsync();
         }
         else
         {
@@ -151,4 +202,48 @@
         var desc = member?.GetCustomAttribute<DescriptionAttribute>()?.Description;
         return desc ?? "无说明";
     }
+    #endregion
+
+    #region Company方法
+    private async Task LoadCompaniesAsync()
+    {
+        _allCompanies = (await CompanyService.GetAllAsync())
+        .OrderBy(c => c.Name)
+        .ToList();
+    }
+
+    private void SearchCompanies()
+    {
+        // 由于绑定了 _searchTerm 和 FilteredCompanies，这里只需 StateHasChanged
+        StateHasChanged();
+    }
+
+    private async Task OpenAddCompanyDialogAsync()
+    {
+        var parameters = new DialogParameters { ["Company"] = new Company() };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddCompanyDialog>("添加新公司", parameters, options);
+        var result = await dialog.Result;
+        if (!result.Canceled && result.Data is Company newCompany)
+        {
+            // 保存 newCompany
+        }
+    }
+
+    private async Task DeleteCompany(int id)
+    {
+        var ok = await CompanyService.DeleteByIdAsync(id);
+        if (ok)
+        {
+            Snackbar.Add("公司已删除", Severity.Success);
+            _allCompanies.RemoveAll(c => c.Id == id);
+        }
+        else
+        {
+            Snackbar.Add("删除失败", Severity.Error);
+        }
+        StateHasChanged();
+    }
+    #endregion
+
 }

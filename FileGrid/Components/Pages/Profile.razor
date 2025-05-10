@@ -1,89 +1,200 @@
 ﻿@page "/profile"
+@attribute [Authorize]
 @using FileGrid.Entities
-@using System.Security.Claims
 @using FileGrid.Services.Interface
+@using Microsoft.AspNetCore.Components.Web
+@using System.Security.Claims
+@inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IUserService UserService
+@implements IBrowserViewportObserver
+@implements IAsyncDisposable
+@inject IBrowserViewportService BrowserViewportService
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
-    <MudGrid Gutter="3">
-        <!-- 1. 头像 + 基本信息 -->
-        <MudItem xs="12">
-            <MudCard Elevation="1">
-                <MudCardHeader>
-                    <MudAvatar Size="Size.Large" Color="Color.Primary">@Avatar</MudAvatar>
-                    <div class="ml-4">
-                        <MudText Typo="Typo.h5">@Name</MudText>
-                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">@Email</MudText>
-                    </div>
-                </MudCardHeader>
-            </MudCard>
-        </MudItem>
 
-        <!-- 2. 组织 & 联系信息 -->
-        <MudItem xs="12" md="6">
-            <MudCard Elevation="1">
-                <MudCardHeader>
-                    <MudText Typo="Typo.h6">组织 & 联系</MudText>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudText><strong>公司：</strong>@CompanyName</MudText>
-                    <MudText><strong>部门：</strong>@DepartmentName</MudText>
-                    <MudText><strong>职务：</strong>@JobTitle</MudText>
-                    <MudText><strong>电话：</strong>@PhoneNumber</MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="pa-4 mt-12 pa-sm-4">
+    @if (_user == null)
+    {
+        <div class="d-flex justify-center my-8">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else
+    {
+        <MudCard Class="elevation-1 elevation-sm-3 ">
+            <!-- Header -->
+            <MudCardHeader Class="d-flex flex-column flex-sm-row align-center">
+                <MudAvatar Size="@(_isMobile? Size.Medium: Size.Large)" Color="Color.Primary"
+                    Class="mb-2 mt-2 mb-sm-0 mr-sm-4">
+                    @(_avatar)
+                </MudAvatar>
+                <div class="d-flex flex-row align-center align-sm-start">
+                    <MudText Typo="@(_isMobile? Typo.h5: Typo.h3)" Class="text-center text-sm-left">
+                        @(string.IsNullOrEmpty(_user.Name) ? "无名" : _user.Name)
+                    </MudText>
+                    <MudChip Class="ml-2" T="string" Color="Color.Secondary" Variant="Variant.Text"
+                        Size="@(_isMobile ? Size.Small : Size.Medium)">
+                        @($"用户组：{_user.UserGroup}")
+                    </MudChip>
+                </div>
+            </MudCardHeader>
 
-        <!-- 3. 项目组 & 项目权限 -->
-        <MudItem xs="12" md="6">
-            <MudCard Elevation="1">
-                <MudCardHeader>
-                    <MudText Typo="Typo.h6">项目 & 权限</MudText>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudList T="string" Dense="true">
-                        <MudListItem Icon="@Icons.Material.Filled.Group">所属组：@string.Join(", ", ProjectGroupNames)
-                        </MudListItem>
-                        <MudListItem Icon="@Icons.Material.Filled.Work">可访问项目：@string.Join(", ", ProjectNames)
-                        </MudListItem>
-                    </MudList>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-    </MudGrid>
+            <!-- Content -->
+            <MudCardContent>
+                <MudGrid Spacing="3">
+                    <!-- 基本信息 -->
+                    <MudItem xs="12" sm="6" Class="order-2 order-sm-1">
+                        <MudPaper Elevation="0" Class="pa-3" Outlined>
+                            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-3">
+                                基本信息
+                            </MudText>
+                            <MudList T="string">
+                                <!-- 邮箱项 -->
+                                <MudListItem Class="py-1"> 
+                                    <div class="d-flex align-center flex-sm-nowrap flex-wrap">
+                                        <MudIcon Icon="@Icons.Material.Filled.Email"
+                                            Size="@(_isMobile ? Size.Small : Size.Medium)" Class="mr-2" />
+                                        <div class="d-flex flex-sm-row flex-column align-sm-center">
+                                            <MudText Typo="Typo.subtitle2" Class="mr-2">
+                                                邮箱:
+                                            </MudText>
+                                            <MudText Typo="Typo.subtitle2" Class="text-truncate">
+                                                @_user.Email
+                                            </MudText>
+                                        </div>
+                                    </div>
+                                </MudListItem>
+
+                                <!-- 联系电话项 -->
+                                <MudListItem Class="py-1">
+                                    <div class="d-flex align-center flex-sm-nowrap flex-wrap">
+                                        <MudIcon Icon="@Icons.Material.Filled.Phone"
+                                            Size="@(_isMobile ? Size.Small : Size.Medium)" Class="mr-2" />
+                                        <div class="d-flex flex-sm-row flex-column align-sm-center">
+                                            <MudText Typo="Typo.subtitle2" Class="mr-2">
+                                                联系电话:
+                                            </MudText>
+                                            <MudText Typo="Typo.subtitle2">
+                                                @(_user.PhoneNumber ?? "未设置")
+                                            </MudText>
+                                        </div>
+                                    </div>
+                                </MudListItem>
+                            </MudList>
+                        </MudPaper>
+                    </MudItem>
+
+                    <!-- 组织信息 -->
+                    <MudItem xs="12" sm="6" Class="order-1 order-sm-2 mb-4 mb-sm-0">
+                        <MudPaper Elevation="0" Class="pa-3" Outlined>
+                            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-3">
+                                组织信息
+                            </MudText>
+                            <MudList T="string">
+                                <MudListItem Class="py-1">
+                                    <div class="d-flex align-center flex-sm-nowrap flex-wrap">
+                                        <MudIcon Icon="@Icons.Material.Filled.Business"
+                                            Size="@(_isMobile ? Size.Small : Size.Medium)" />
+                                        <div class="d-flex flex-sm-row flex-column align-sm-center">
+                                            <MudText Typo="Typo.subtitle2" Class="mr-2">公司: </MudText>
+                                            <MudText Typo="Typo.subtitle2" Class="text-truncate">
+                                                @(_user.Company?.Name ?? "未设置")
+                                            </MudText>
+                                        </div>
+                                    </div>
+                                </MudListItem>
+
+                                <MudListItem Class="py-1">
+                                    <div class="d-flex align-center flex-sm-nowrap flex-wrap">
+                                        <MudIcon Icon="@Icons.Material.Filled.AccountTree"
+                                            Size="@(_isMobile ? Size.Small : Size.Medium)" />
+                                        <div class="d-flex flex-sm-row flex-column align-sm-center">
+                                            <MudText Typo="Typo.subtitle2">部门: </MudText>
+                                            <MudText Typo="Typo.subtitle2" Class="text-truncate">
+                                                @(_user.Department?.Name ?? "未设置")
+                                            </MudText>
+                                        </div>
+                                    </div>
+                                </MudListItem>
+
+                                <MudListItem Class="py-1">
+                                    <div class="d-flex align-center flex-sm-nowrap flex-wrap">
+                                        <MudIcon Icon="@Icons.Material.Filled.Work"
+                                            Size="@(_isMobile ? Size.Small : Size.Medium)" />
+                                        <div class="d-flex flex-sm-row flex-column align-sm-center">
+                                            <MudText Typo="Typo.subtitle2">职务: </MudText>
+                                            <MudText Typo="Typo.subtitle2">
+                                                @(_user.JobTitle ?? "未设置")
+                                            </MudText>
+                                        </div>
+                                    </div>
+                                </MudListItem>
+
+                            </MudList>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+
+            <!-- Actions -->
+            <MudCardActions Class="px-3 pb-3">
+                <MudButton FullWidth="@_isMobile" Variant="Variant.Outlined" Color="Color.Primary"
+                    Size="@(_isMobile ? Size.Small : Size.Medium)" EndIcon="@Icons.Material.Filled.Edit">
+                    编辑资料
+                </MudButton>
+            </MudCardActions>
+        </MudCard>
+    }
 </MudContainer>
 
-@code {
-    private string Avatar = "U";
-    private string Name = "未知用户";
-    private string Email = string.Empty;
-    private string CompanyName = "—";
-    private string DepartmentName = "—";
-    private string JobTitle = "—";
-    private string PhoneNumber = "—";
-    private List<string> ProjectGroupNames = new();
-    private List<string> ProjectNames = new();
 
+
+@code {
+    private User _user;
+    private bool _isMobile;
+    private Breakpoint _currentBreakpoint;
+    private MudDialog _editDialog;
+    private string? _avatar = "U";
+    public Guid Id { get; } = Guid.NewGuid();
+
+
+    #region 生命周期
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        if (user.Identity?.IsAuthenticated == true)
+        var userId = (await AuthStateProvider.GetAuthenticationStateAsync()).User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId != null)
         {
-            Email = user.FindFirst(ClaimTypes.Email)?.Value ?? "";
-            Name = user.FindFirst(ClaimTypes.Name)?.Value ?? Email;
-            Avatar = !string.IsNullOrEmpty(Name)
-            ? Name.Substring(0, 1).ToUpperInvariant()
-            : Email.Substring(0, 1).ToUpperInvariant();
-
-            var dto = await UserService.GetUserByIdAsync(Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value!));
-            CompanyName = dto.Company?.Name ?? "—";
-            DepartmentName = dto.Department?.Name ?? "—";
-            JobTitle = dto.JobTitle ?? "—";
-            PhoneNumber = dto.PhoneNumber ?? "—";
-            ProjectGroupNames = dto.AccessibleProjectGroups.Select(g => g.Group.Name).ToList();
-            ProjectNames = dto.AccessibleProjects.Select(p => p.Project.Name).ToList();
+            var res = await UserService.GetUserByIdAsync(Guid.Parse(userId));
+            if (res != null)
+            {
+                _user = res;
+                string? temp = !string.IsNullOrEmpty(_user.Name) ? _user.Name.FirstOrDefault().ToString().ToUpperInvariant() :
+                (!string.IsNullOrEmpty(_user.Email) ? _user.Email.FirstOrDefault().ToString().ToUpperInvariant() : "U");
+                if (temp != null)
+                {
+                    _avatar = temp;
+                }
+            }
         }
     }
+
+    public Task NotifyBrowserViewportChangeAsync(BrowserViewportEventArgs args)
+    {
+        // 根据断点设置 _isMobile
+        _isMobile = args.Breakpoint <= Breakpoint.Sm;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await BrowserViewportService.SubscribeAsync(this, fireImmediately: true);
+    }
+    public async ValueTask DisposeAsync()
+    {
+        await BrowserViewportService.UnsubscribeAsync(this);
+    }
+
+    #endregion
 }

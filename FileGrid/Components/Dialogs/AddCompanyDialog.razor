@@ -1,0 +1,22 @@
+﻿@using FileGrid.Entities
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="Company.Name" Label="公司名称" Required="true" />
+        <MudTextField @bind-Value="Company.Description" Label="公司描述" Lines="3" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">取消</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">保存</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter]
+    public Company Company { get; set; } = new();
+
+    void Cancel() => MudDialog.Cancel();
+
+    void Save() => MudDialog.Close(DialogResult.Ok(Company));
+}
