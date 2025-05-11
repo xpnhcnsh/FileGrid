@@ -1,22 +1,47 @@
 ﻿@using FileGrid.Entities
+@using FileGrid.Utils.Enum
+@using MudBlazor
 
 <MudDialog>
+    <TitleContent>添加新公司</TitleContent>
     <DialogContent>
-        <MudTextField @bind-Value="Company.Name" Label="公司名称" Required="true" />
-        <MudTextField @bind-Value="Company.Description" Label="公司描述" Lines="3" />
+        <MudForm @ref="_form" @bind-IsValid="_formIsValid">
+            <MudTextField @bind-Value="Company.Name" Label="公司名称" Required="true" />
+            <MudSelect T="CompanyType" @bind-Value="Company.Type" Label="类型" Required="true">
+                @foreach (var t in Enum.GetValues<CompanyType>())
+                {
+                    <MudSelectItem Value="@t">@t</MudSelectItem>
+                }
+            </MudSelect>
+            <MudTextField @bind-Value="Company.Address" Label="地址" />
+            <MudTextField @bind-Value="Company.Description" Label="描述" />
+        </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Text" OnClick="Cancel">取消</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">保存</MudButton>
+        <MudButton Variant="Variant.Filled" OnClick="Submit" Disabled="@(!_formIsValid)">保存
+        </MudButton>
     </DialogActions>
 </MudDialog>
+
 @code {
     [CascadingParameter]
-    IMudDialogInstance MudDialog { get; set; } = default!;
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
     [Parameter]
-    public Company Company { get; set; } = new();
+    public Company Company { get; set; } = null!;
 
-    void Cancel() => MudDialog.Cancel();
+    private MudForm _form;
+    private bool _formIsValid;
 
-    void Save() => MudDialog.Close(DialogResult.Ok(Company));
+    private void Cancel() => MudDialog.Cancel();
+
+    private async void Submit()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            MudDialog.Close(DialogResult.Ok(Company));
+        }
+    }
 }

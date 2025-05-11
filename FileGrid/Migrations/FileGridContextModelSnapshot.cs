@@ -68,9 +68,6 @@ namespace FileGrid.Migrations
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CompanyId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -81,8 +78,6 @@ namespace FileGrid.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
-
-                    b.HasIndex("CompanyId1");
 
                     b.ToTable("Departments");
                 });
@@ -662,14 +657,10 @@ namespace FileGrid.Migrations
             modelBuilder.Entity("FileGrid.Entities.Department", b =>
                 {
                     b.HasOne("FileGrid.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Departments")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("FileGrid.Entities.Company", null)
-                        .WithMany("Departments")
-                        .HasForeignKey("CompanyId1");
 
                     b.Navigation("Company");
                 });

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FileGrid.Migrations
 {
     /// <inheritdoc />
-    public partial class ChangeValidDurationHoursToBigInt : Migration
+    public partial class deleteCompanyId1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -90,8 +90,7 @@ namespace FileGrid.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CompanyId = table.Column<int>(type: "int", nullable: false),
-                    CompanyId1 = table.Column<int>(type: "int", nullable: true)
+                    CompanyId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -102,11 +101,6 @@ namespace FileGrid.Migrations
                         principalTable: "Companies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Departments_Companies_CompanyId1",
-                        column: x => x.CompanyId1,
-                        principalTable: "Companies",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -594,11 +588,6 @@ namespace FileGrid.Migrations
                 name: "IX_Departments_CompanyId",
                 table: "Departments",
                 column: "CompanyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Departments_CompanyId1",
-                table: "Departments",
-                column: "CompanyId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_InvitationCodes_CreatorId",

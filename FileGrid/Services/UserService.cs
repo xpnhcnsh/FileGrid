@@ -1,5 +1,3 @@
-using System;
-using System.Reflection.Metadata.Ecma335;
 using FileGrid.Entities;
 using FileGrid.Services.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +15,7 @@ public class UserService(FileGridContext context) : IUserService
 
     public async Task<User?> GetUserByIdAsync(Guid userId)
     {
-        var res = await _context.Users
+        var res = await _context.Users.AsNoTracking()
             .Include(u => u.AccessibleProjectGroups)
             .Include(u => u.Company)
             .Include(u => u.Department)
@@ -32,4 +30,19 @@ public class UserService(FileGridContext context) : IUserService
     {
         throw new NotImplementedException();
     }
+
+    public async Task<User?> UpdateUserAsync(User user)
+    {
+        var toUpdateCount = await _context.Users.Where(x => x.Id == user.Id)
+        .ExecuteUpdateAsync(set => set
+        .SetProperty(u => u.Name, _ => user.Name)
+        .SetProperty(u => u.Email, _ => user.Email)
+        .SetProperty(u => u.PhoneNumber, _ => user.PhoneNumber)
+        .SetProperty(u => u.CompanyId, _ => user.CompanyId)
+        .SetProperty(u => u.DepartmentId, _ => user.DepartmentId)
+        .SetProperty(u => u.JobTitle, _ => user.JobTitle)
+        );
+        return toUpdateCount > 0 ? user : null;
+    }
+
 }

@@ -1,0 +1,33 @@
+﻿@using FileGrid.Entities
+
+<MudDialog>
+    <TitleContent>添加新部门</TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="Department.Name" Label="部门名称" Required="true" />
+            <MudTextField @bind-Value="Department.Description" Label="描述" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">取消</MudButton>
+        <MudButton Variant="Variant.Filled" OnClick="Submit" Disabled="!_form.IsValid">保存</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter]
+    public int CompanyId { get; set; }
+    [Parameter]
+    public Department Department { get; set; } = null!;
+    private MudForm _form;
+
+    void Cancel() => MudDialog.Cancel();
+
+    void Submit()
+    {
+        Department.CompanyId = CompanyId;
+        MudDialog.Close(DialogResult.Ok(Department));
+    }
+}

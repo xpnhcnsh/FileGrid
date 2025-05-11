@@ -64,7 +64,7 @@ namespace FileGrid.Entities
                 entity.Property(e => e.CompanyId).IsRequired();
 
                 entity.HasOne(e => e.Company)
-                    .WithMany()
+                    .WithMany(c => c.Departments)
                     .HasForeignKey(e => e.CompanyId)
                     .OnDelete(DeleteBehavior.Cascade);
             });

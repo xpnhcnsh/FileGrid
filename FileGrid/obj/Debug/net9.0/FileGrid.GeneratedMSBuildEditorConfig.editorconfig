@@ -51,6 +51,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9EaWFsb2dzL0FkZENvbXBhbnlEaWFsb2cucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/xpnhcnsh/Code/FileGrid/FileGrid/Components/Dialogs/AddDepartmentDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9EaWFsb2dzL0FkZERlcGFydG1lbnREaWFsb2cucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/xpnhcnsh/Code/FileGrid/FileGrid/Components/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTWFpbkxheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FileGrid.Migrations
 {
     [DbContext(typeof(FileGridContext))]
-    [Migration("20250508144235_ChangeValidDurationHoursToBigInt")]
-    partial class ChangeValidDurationHoursToBigInt
+    [Migration("20250511140311_deleteCompanyId1")]
+    partial class deleteCompanyId1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -71,9 +71,6 @@ namespace FileGrid.Migrations
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CompanyId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -84,8 +81,6 @@ namespace FileGrid.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
-
-                    b.HasIndex("CompanyId1");
 
                     b.ToTable("Departments");
                 });
@@ -665,14 +660,10 @@ namespace FileGrid.Migrations
             modelBuilder.Entity("FileGrid.Entities.Department", b =>
                 {
                     b.HasOne("FileGrid.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Departments")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("FileGrid.Entities.Company", null)
-                        .WithMany("Departments")
-                        .HasForeignKey("CompanyId1");
 
                     b.Navigation("Company");
                 });

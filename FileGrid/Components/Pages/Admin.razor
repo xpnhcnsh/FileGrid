@@ -13,13 +13,14 @@
 @inject IInvitationCodeService InvitationCodeService
 @inject ICompanyService CompanyService
 @inject IDialogService DialogService
+
 @inject ISnackbar Snackbar
 
 <MudTabs Class="mt-4">
     <MudTabPanel Text="邀请码">
-        <MudPaper Class="mt-10 elevation-4">
-            <MudGrid Class="flex justify-center align-center ml-4 mr-4">
-                <MudItem xs="12" sm="3">
+        <MudPaper Class="mt-10 elevation-4 pa-4">
+            <MudGrid Class="flex justify-center align-center">
+                <MudItem xs="12" sm="4" md="3">
                     <MudSelect T="UserGroup" @bind-Value="_selectedUserGroup" Label="用户组" Variant="Variant.Outlined"
                         HelperText="@($"用户组权限：{GetGroupDescription(_selectedUserGroup)}")">
                         @foreach (var group in Enum.GetValues<UserGroup>().Where(g => g != UserGroup.God))
@@ -28,7 +29,7 @@
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="12" sm="3">
+                <MudItem xs="12" sm="4" md="3">
                     <MudSelect T="string" @bind-Value="_selectedDuration" Label="有效期" Variant="Variant.Outlined"
                         HelperText="邀请码有效期">
                         @foreach (var duration in _durationOptions.Keys)
@@ -37,7 +38,7 @@
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="12" sm="3" Class="d-flex mb-3">
+                <MudItem xs="12" sm="4" md="3" Class="d-flex justify-center mt-sm-0">
                     <MudButton Variant=" Variant.Filled" Color="Color.Primary" OnClick="CreateInviteCode">
                         新建邀请码
                     </MudButton>
@@ -75,15 +76,15 @@
     </MudTabPanel>
 
     <MudTabPanel Text="公司管理">
-        <MudPaper Class="p-4 elevation-2">
+        <MudPaper Class="mt-10 elevation-4 pa-4">
             <!-- 搜索 + 添加 -->
-            <MudGrid Gutter="2" AlignItems="Center">
-                <MudItem xs="12" sm="6">
+            <MudGrid Gutter="2" Class="flex justify-center">
+                <MudItem xs="12" sm="8" md="6" Class="d-flex justify-center">
                     <MudTextField @bind-Value="_searchTerm" Placeholder="输入公司名称后按回车" Adornment="Adornment.Start"
                         AdornmentIcon="@Icons.Material.Filled.Search"
                         OnKeyUp="@(e => { if (e.Key == "Enter") SearchCompanies(); })" Immediate="true" Class="w-100" />
                 </MudItem>
-                <MudItem xs="12" sm="6" Class="d-flex justify-end">
+                <MudItem xs="12" sm="4" md="6" Class="d-flex justify-center mt-sm-0">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenAddCompanyDialogAsync">
                         添加公司
                     </MudButton>
@@ -91,27 +92,51 @@
             </MudGrid>
 
             <!-- 公司列表 -->
-            <MudTable Items="_filteredCompanies" Hover="true">
+            <MudTable Items="_filteredCompanies" Hover="true" Elevation="0" Breakpoint="Breakpoint.Sm">
                 <HeaderContent>
                     <MudTh>公司 ID</MudTh>
                     <MudTh>公司名称</MudTh>
-                    <MudTh>描述</MudTh>
+                    <MudTh>类型</MudTh>
+                    <MudTh>地址</MudTh>
                     <MudTh>操作</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="公司 ID">@context.Id</MudTd>
                     <MudTd DataLabel="公司名称">@context.Name</MudTd>
-                    <MudTd DataLabel="描述">@context.Description</MudTd>
+                    <MudTd DataLabel="类型">@context.Type</MudTd>
+                    <MudTd DataLabel="地址">@context.Address</MudTd>
                     <MudTd DataLabel="操作">
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
                             OnClick="@(() => DeleteCompany(context.Id))" />
                     </MudTd>
                 </RowTemplate>
+
+                <ChildRowContent Context="company">
+                    <MudPaper Class="pa-4">
+                        <MudStack Row="true" Class="mb-2">
+                            <MudText Typo="Typo.subtitle1">部门列表</MudText>
+                            <MudButton Size="Size.Small" OnClick="@(() => OpenAddDepartment(company))">
+                                添加部门
+                            </MudButton>
+                        </MudStack>
+                        <MudTable Items="company.Departments" Dense="true">
+                            <HeaderContent>
+                                <MudTh>部门 ID</MudTh>
+                                <MudTh>部门名称</MudTh>
+                                <MudTh>描述</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="部门 ID">@context.Id</MudTd>
+                                <MudTd DataLabel="部门名称">@context.Name</MudTd>
+                                <MudTd DataLabel="描述">@context.Description</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudPaper>
+                </ChildRowContent>
             </MudTable>
         </MudPaper>
     </MudTabPanel>
 </MudTabs>
-
 
 @code {
 
@@ -147,6 +172,8 @@
         {
             _currentUserId = userId;
         }
+        await LoadInvitationCodesAsync();
+        await LoadCompaniesAsync();
     }
 
     #region InvitationCode方法
@@ -207,7 +234,7 @@
     #region Company方法
     private async Task LoadCompaniesAsync()
     {
-        _allCompanies = (await CompanyService.GetAllAsync())
+        _allCompanies = (await CompanyService.GetAllCompaniesAsync())
         .OrderBy(c => c.Name)
         .ToList();
     }
@@ -232,7 +259,7 @@
 
     private async Task DeleteCompany(int id)
     {
-        var ok = await CompanyService.DeleteByIdAsync(id);
+        var ok = await CompanyService.DeleteCompanyByIdAsync(id);
         if (ok)
         {
             Snackbar.Add("公司已删除", Severity.Success);
@@ -243,6 +270,26 @@
             Snackbar.Add("删除失败", Severity.Error);
         }
         StateHasChanged();
+    }
+
+    private async Task OpenAddDepartment(Company company)
+    {
+        var parameters = new DialogParameters
+        {
+            ["CompanyId"] = company.Id,
+            ["Department"] = new Department()
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<AddDepartmentDialog>("添加部门", parameters, options);
+        var result = await dialog.Result;
+        if (!result.Canceled && result.Data is Department newDept)
+        {
+            newDept.CompanyId = company.Id;
+            var saved = await CompanyService.AddDepartmentAsync(newDept);
+            company.Departments.Add(saved);
+            Snackbar.Add("部门已添加", Severity.Success);
+            StateHasChanged();
+        }
     }
     #endregion
 

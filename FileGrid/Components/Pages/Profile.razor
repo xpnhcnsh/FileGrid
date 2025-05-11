@@ -7,9 +7,8 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IUserService UserService
-@implements IBrowserViewportObserver
-@implements IAsyncDisposable
-@inject IBrowserViewportService BrowserViewportService
+@inject ICompanyService CompanyService
+@inject ISnackbar Snackbar
 
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="pa-4 mt-12 pa-sm-4">
@@ -29,13 +28,31 @@
                     @(_avatar)
                 </MudAvatar>
                 <div class="d-flex flex-row align-center align-sm-start">
-                    <MudText Typo="@(_isMobile? Typo.h5: Typo.h3)" Class="text-center text-sm-left">
-                        @(string.IsNullOrEmpty(_user.Name) ? "无名" : _user.Name)
-                    </MudText>
+                    @if (!_editMode)
+                    {
+                        <MudText Typo="@(_isMobile? Typo.h5: Typo.h3)" Class="text-center text-sm-left">
+                            @(string.IsNullOrEmpty(_user.Name) ? "无名" : _user.Name)
+                        </MudText>
+                    }
+                    else
+                    {
+                        <MudTextField @bind-Value="_editUser.Name" Label="姓名" FullWidth="true" Margin="Margin.Dense" />
+                    }
                     <MudChip Class="ml-2" T="string" Color="Color.Secondary" Variant="Variant.Text"
                         Size="@(_isMobile ? Size.Small : Size.Medium)">
                         @($"用户组：{_user.UserGroup}")
                     </MudChip>
+                </div>
+                <div class="ml-auto">
+                    @if (!_editMode)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="EnableEdit" />
+                    }
+                    else
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success" OnClick="SaveAsync" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Error" OnClick="CancelEdit" />
+                    }
                 </div>
             </MudCardHeader>
 
@@ -51,33 +68,45 @@
                             <MudList T="string">
                                 <!-- 邮箱项 -->
                                 <MudListItem Class="py-1"> 
-                                    <div class="d-flex align-center flex-sm-nowrap flex-wrap">
-                                        <MudIcon Icon="@Icons.Material.Filled.Email"
-                                            Size="@(_isMobile ? Size.Small : Size.Medium)" Class="mr-2" />
-                                        <div class="d-flex flex-sm-row flex-column align-sm-center">
-                                            <MudText Typo="Typo.subtitle2" Class="mr-2">
-                                                邮箱:
-                                            </MudText>
-                                            <MudText Typo="Typo.subtitle2" Class="text-truncate">
-                                                @_user.Email
-                                            </MudText>
+                                    <div class="d-flex flex-column">
+                                        <div class="d-flex align-items-center flex-nowrap">
+                                            <MudIcon Icon="@Icons.Material.Filled.Email"
+                                                Size="@(_isMobile ? Size.Small : Size.Medium)" Class="mr-2" />
+                                            <MudText Typo="Typo.subtitle1" Class="mr-2">邮箱</MudText>
                                         </div>
+                                        @if (!_editMode)
+                                        {
+                                            <MudText Typo="Typo.subtitle1">
+                                                @(_user.Email ?? "未设置")
+                                            </MudText>
+                                        }
+                                        else
+                                        {
+                                            <MudTextField @bind-Value="_editUser.Email" FullWidth="true"
+                                                Margin="Margin.Dense" />
+                                        }
                                     </div>
                                 </MudListItem>
 
                                 <!-- 联系电话项 -->
-                                <MudListItem Class="py-1">
-                                    <div class="d-flex align-center flex-sm-nowrap flex-wrap">
-                                        <MudIcon Icon="@Icons.Material.Filled.Phone"
-                                            Size="@(_isMobile ? Size.Small : Size.Medium)" Class="mr-2" />
-                                        <div class="d-flex flex-sm-row flex-column align-sm-center">
-                                            <MudText Typo="Typo.subtitle2" Class="mr-2">
-                                                联系电话:
-                                            </MudText>
-                                            <MudText Typo="Typo.subtitle2">
+                                <MudListItem Class="py-1"> 
+                                    <div class="d-flex flex-column">
+                                        <div class="d-flex align-items-center flex-nowrap">
+                                            <MudIcon Icon="@Icons.Material.Filled.Phone"
+                                                Size="@(_isMobile ? Size.Small : Size.Medium)" Class="mr-2" />
+                                            <MudText Typo="Typo.subtitle1" Class="mr-2">电话</MudText>
+                                        </div>
+                                        @if (!_editMode)
+                                        {
+                                            <MudText Typo="Typo.subtitle1">
                                                 @(_user.PhoneNumber ?? "未设置")
                                             </MudText>
-                                        </div>
+                                        }
+                                        else
+                                        {
+                                            <MudTextField @bind-Value="_editUser.PhoneNumber" FullWidth="true"
+                                                Margin="Margin.Dense" />
+                                        }
                                     </div>
                                 </MudListItem>
                             </MudList>
@@ -91,58 +120,83 @@
                                 组织信息
                             </MudText>
                             <MudList T="string">
-                                <MudListItem Class="py-1">
-                                    <div class="d-flex align-center flex-sm-nowrap flex-wrap">
-                                        <MudIcon Icon="@Icons.Material.Filled.Business"
-                                            Size="@(_isMobile ? Size.Small : Size.Medium)" />
-                                        <div class="d-flex flex-sm-row flex-column align-sm-center">
-                                            <MudText Typo="Typo.subtitle2" Class="mr-2">公司: </MudText>
-                                            <MudText Typo="Typo.subtitle2" Class="text-truncate">
+                                <MudListItem Class="py-1"> 
+                                    <div class="d-flex flex-column">
+                                        <div class="d-flex align-items-center flex-nowrap">
+                                            <MudIcon Icon="@Icons.Material.Filled.Business"
+                                                Size="@(_isMobile ? Size.Small : Size.Medium)" Class="mr-2" />
+                                            <MudText Typo="Typo.subtitle1" Class="mr-2">公司</MudText>
+                                        </div>
+                                        @if (!_editMode)
+                                        {
+                                            <MudText Typo="Typo.subtitle1">
                                                 @(_user.Company?.Name ?? "未设置")
                                             </MudText>
-                                        </div>
+                                        }
+                                        else
+                                        {
+                                            <MudSelect T="int?" @bind-Value="_editUser.CompanyId" FullWidth="true"
+                                                Margin="Margin.Dense" OnValueChanged="">
+                                                @foreach (var c in _companyList)
+                                                {
+                                                    <MudSelectItem Value="c">@c.Name</MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                        }
                                     </div>
                                 </MudListItem>
 
-                                <MudListItem Class="py-1">
-                                    <div class="d-flex align-center flex-sm-nowrap flex-wrap">
-                                        <MudIcon Icon="@Icons.Material.Filled.AccountTree"
-                                            Size="@(_isMobile ? Size.Small : Size.Medium)" />
-                                        <div class="d-flex flex-sm-row flex-column align-sm-center">
-                                            <MudText Typo="Typo.subtitle2">部门: </MudText>
-                                            <MudText Typo="Typo.subtitle2" Class="text-truncate">
+                                <MudListItem Class="py-1"> 
+                                    <div class="d-flex flex-column">
+                                        <div class="d-flex align-items-center flex-nowrap">
+                                            <MudIcon Icon="@Icons.Material.Filled.AccountTree"
+                                                Size="@(_isMobile ? Size.Small : Size.Medium)" Class="mr-2" />
+                                            <MudText Typo="Typo.subtitle1" Class="mr-2">部门</MudText>
+                                        </div>
+                                        @if (!_editMode)
+                                        {
+                                            <MudText Typo="Typo.subtitle1">
                                                 @(_user.Department?.Name ?? "未设置")
                                             </MudText>
-                                        </div>
+                                        }
+                                        else
+                                        {
+                                            <MudSelect T="int?" @bind-Value="_editUser.DepartmentId" FullWidth="true"
+                                                Margin="Margin.Dense">
+                                                @foreach (var dept in _filteredDepartments)
+                                                {
+                                                    <MudSelectItem Value="@dept.Id">@dept.Name</MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                        }
                                     </div>
                                 </MudListItem>
 
-                                <MudListItem Class="py-1">
-                                    <div class="d-flex align-center flex-sm-nowrap flex-wrap">
-                                        <MudIcon Icon="@Icons.Material.Filled.Work"
-                                            Size="@(_isMobile ? Size.Small : Size.Medium)" />
-                                        <div class="d-flex flex-sm-row flex-column align-sm-center">
-                                            <MudText Typo="Typo.subtitle2">职务: </MudText>
-                                            <MudText Typo="Typo.subtitle2">
+                                <MudListItem Class="py-1"> 
+                                    <div class="d-flex flex-column">
+                                        <div class="d-flex align-items-center flex-nowrap">
+                                            <MudIcon Icon="@Icons.Material.Filled.Work"
+                                                Size="@(_isMobile ? Size.Small : Size.Medium)" Class="mr-2" />
+                                            <MudText Typo="Typo.subtitle1" Class="mr-2">职务</MudText>
+                                        </div>
+                                        @if (!_editMode)
+                                        {
+                                            <MudText Typo="Typo.subtitle1">
                                                 @(_user.JobTitle ?? "未设置")
                                             </MudText>
-                                        </div>
+                                        }
+                                        else
+                                        {
+                                            <MudTextField @bind-Value="_editUser.JobTitle" FullWidth="true"
+                                                Margin="Margin.Dense" />
+                                        }
                                     </div>
                                 </MudListItem>
-
                             </MudList>
                         </MudPaper>
                     </MudItem>
                 </MudGrid>
             </MudCardContent>
-
-            <!-- Actions -->
-            <MudCardActions Class="px-3 pb-3">
-                <MudButton FullWidth="@_isMobile" Variant="Variant.Outlined" Color="Color.Primary"
-                    Size="@(_isMobile ? Size.Small : Size.Medium)" EndIcon="@Icons.Material.Filled.Edit">
-                    编辑资料
-                </MudButton>
-            </MudCardActions>
         </MudCard>
     }
 </MudContainer>
@@ -150,15 +204,17 @@
 
 
 @code {
-    private User _user;
+    private bool _editMode = false;
+    private User _user = null!;
+    private User _editUser = null!;
     private bool _isMobile;
-    private Breakpoint _currentBreakpoint;
-    private MudDialog _editDialog;
     private string? _avatar = "U";
     public Guid Id { get; } = Guid.NewGuid();
+    private List<Company> _companyList = new();
+    private List<Department> _departmentList = new();
+    private IEnumerable<Department> _filteredDepartments =>
+    _departmentList.Where(d => d.CompanyId == _editUser.CompanyId);
 
-
-    #region 生命周期
     protected override async Task OnInitializedAsync()
     {
         var userId = (await AuthStateProvider.GetAuthenticationStateAsync()).User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -174,27 +230,46 @@
                 {
                     _avatar = temp;
                 }
+                _companyList = await CompanyService.GetAllCompaniesAsync();
+                _departmentList = await CompanyService.GetAllDepartmentsAsync();
             }
         }
     }
 
-    public Task NotifyBrowserViewportChangeAsync(BrowserViewportEventArgs args)
+    private void EnableEdit()
     {
-        // 根据断点设置 _isMobile
-        _isMobile = args.Breakpoint <= Breakpoint.Sm;
-        StateHasChanged();
-        return Task.CompletedTask;
+        _editUser = new User
+        {
+            Id = _user.Id,
+            Email = _user.Email,
+            Name = _user.Name,
+            PhoneNumber = _user.PhoneNumber,
+            Department = _user.Department,
+            JobTitle = _user.JobTitle,
+            Company = _user.Company
+        };
+        _editMode = true;
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task SaveAsync()
     {
-        if (firstRender)
-            await BrowserViewportService.SubscribeAsync(this, fireImmediately: true);
-    }
-    public async ValueTask DisposeAsync()
-    {
-        await BrowserViewportService.UnsubscribeAsync(this);
+        User? updated = await UserService.UpdateUserAsync(_editUser);
+        if (updated == null)
+        {
+            Snackbar.Add("更新信息失败", Severity.Error);
+            return;
+        }
+        _user = updated!;
+        _editMode = false;
     }
 
-    #endregion
+    private void CancelEdit()
+    {
+        _editMode = false;
+    }
+
+    private void OnCompanyChanged()
+    {
+        _editUser.DepartmentId = 0;
+    }
 }
