@@ -1,0 +1,195 @@
+﻿@using FileGrid.Entities
+@using FileGrid.Services.Interface
+@using MudBlazor
+
+@inject IUserService UserService
+
+<MudDialog MaxWidth="MaxWidth.Large" FullWidth="true">
+    <TitleContent>
+        公司详情：@CompanyName
+    </TitleContent>
+    <DialogContent>
+        <MudTabs>
+            <!-- Tab 1: 人员管理 -->
+            <MudTabPanel Text="员工列表">
+                <MudStack Row="true" Class="mb-2">
+                    <MudText Typo="Typo.h6">员工列表</MudText>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="AddEmployee">
+                        添加员工
+                    </MudButton>
+                </MudStack>
+                <MudTable Items="_users" Hover="true">
+                    <HeaderContent>
+                        <MudTh>姓名</MudTh>
+                        <MudTh>邮箱</MudTh>
+                        <MudTh>职位</MudTh>
+                        <MudTh>操作</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="姓名">@context.Name</MudTd>
+                        <MudTd DataLabel="邮箱">@context.Email</MudTd>
+                        <MudTd DataLabel="职位">@context.JobTitle</MudTd>
+                        <MudTd DataLabel="操作">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary"
+                                OnClick="@(() => EditEmployee(context))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                OnClick="@(() => DeleteEmployee(context))" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudTabPanel>
+
+            <!-- Tab 2: 部门管理 -->
+            <MudTabPanel Text="部门列表">
+                <MudStack Row="true" Class="mb-2">
+                    <MudText Typo="Typo.h6">部门列表</MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddDepartment">
+                        添加部门
+                    </MudButton>
+                </MudStack>
+                <MudTable Items="_departments" Hover="true">
+                    <HeaderContent>
+                        <MudTh>部门名称</MudTh>
+                        <MudTh>描述</MudTh>
+                        <MudTh>操作</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="部门名称">@context.Name</MudTd>
+                        <MudTd DataLabel="描述">@context.Description</MudTd>
+                        <MudTd DataLabel="操作">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary"
+                                OnClick="@(() => EditDepartment(context))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                OnClick="@(() => DeleteDepartment(context))" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudTabPanel>
+        </MudTabs>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Close">关闭</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public int CompanyId { get; set; }
+    [Parameter] public string CompanyName { get; set; } = "";
+
+    [Inject] ICompanyService CompanyService { get; set; } = null!;
+    [Inject] IDialogService DialogService { get; set; } = null!;
+    [Inject] ISnackbar Snackbar { get; set; } = null!;
+
+    private List<User> _users = new();
+    private List<Department> _departments = new();
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+        _users = await UserService.GetUsersByCompanyIdAsync(CompanyId);
+        _departments = await CompanyService.GetDepartmentsByCompanyIdAsync(CompanyId);
+        _loading = false;
+    }
+
+    private void Close() => MudDialog.Close();
+
+    // --- 员工 CRUD ---
+
+    private async Task AddEmployee()
+    {
+        var parameters = new DialogParameters
+        {
+            ["CompanyId"] = CompanyId,
+            ["Employee"] = new User() { Email = string.Empty }
+        };
+        var opts = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dlg = await DialogService.ShowAsync<EditEmployeeDialog>("添加员工", parameters, opts);
+        var res = await dlg.Result;
+        if (!res.Canceled && res.Data is User emp)
+        {
+            var saved = await CompanyService.AddEmployeeAsync(emp);
+            if (saved != null)
+            {
+                _users.Add(saved);
+            }
+        }
+    }
+
+    private async Task EditEmployee(User emp)
+    {
+        var parameters = new DialogParameters
+        {
+            ["CompanyId"] = CompanyId,
+            ["Employee"] = emp
+        };
+        var opts = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dlg = await DialogService.ShowAsync<EditEmployeeDialog>("编辑员工", parameters, opts);
+        var res = await dlg.Result;
+        if (!res.Canceled && res.Data is User updated)
+        {
+            // 列表已绑定引用，MudTable 会自动刷新
+            Snackbar.Add("员工更新成功", Severity.Success);
+        }
+    }
+
+    private async Task DeleteEmployee(User emp)
+    {
+        bool ok = await CompanyService.DeleteEmployeeByIdAsync(emp.Id);
+        if (ok)
+        {
+            _users.Remove(emp);
+            Snackbar.Add("员工已删除", Severity.Success);
+        }
+    }
+
+    // --- 部门 CRUD ---
+
+    private async Task AddDepartment()
+    {
+        var parameters = new DialogParameters
+        {
+            ["CompanyId"] = CompanyId,
+            ["Department"] = new Department()
+        };
+        var opts = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dlg = await DialogService.ShowAsync<EditDepartmentDialog>("添加部门", parameters, opts);
+        var res = await dlg.Result;
+        if (!res.Canceled && res.Data is Department dept)
+        {
+            var saved = await CompanyService.AddDepartmentAsync(dept);
+            if (saved != null)
+            {
+                _departments.Add(saved);
+                Snackbar.Add("部门添加成功", Severity.Success);
+            }
+        }
+    }
+
+    private async Task EditDepartment(Department dept)
+    {
+        var parameters = new DialogParameters
+        {
+            ["CompanyId"] = CompanyId,
+            ["Department"] = dept
+        };
+        var opts = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dlg = await DialogService.ShowAsync<EditDepartmentDialog>("编辑部门", parameters, opts);
+        var res = await dlg.Result;
+        if (!res.Canceled)
+        {
+            Snackbar.Add("部门更新成功", Severity.Success);
+        }
+    }
+
+    private async Task DeleteDepartment(Department dept)
+    {
+        bool ok = await CompanyService.DeleteDepartmentByIdAsync(dept.Id);
+        if (ok)
+        {
+            _departments.Remove(dept);
+            Snackbar.Add("部门已删除", Severity.Success);
+        }
+    }
+}

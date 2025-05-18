@@ -1,0 +1,45 @@
+﻿@using FileGrid.Entities
+@using FileGrid.Services.Interface
+<MudDialog>
+    <TitleContent>@(Department.Id == 0 ? "添加部门" : "编辑部门")</TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_valid">
+            <MudTextField @bind-Value="Department.Name" Label="部门" Required="true" />
+            <MudTextField @bind-Value="Department.Description" Label="描述" Required="true" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">取消</MudButton>
+        <MudButton Variant="Variant.Filled" OnClick="Save" Disabled="!_valid">保存</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public int CompanyId { get; set; }
+    [Parameter]
+    public Department Department { get; set; } = null!;
+
+    [Inject]
+    ICompanyService CompanyService { get; set; }
+
+    private MudForm _form;
+    private bool _valid;
+
+    private async Task Save()
+    {
+        await _form.Validate();
+        if (_valid)
+        {
+            Department.CompanyId = CompanyId;
+            var result = (Department.Id == 0)
+            ? await CompanyService.AddDepartmentAsync(Department)
+            : await CompanyService.UpdateDepartmentAsync(Department);
+            MudDialog.Close(DialogResult.Ok(result ?? Department));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

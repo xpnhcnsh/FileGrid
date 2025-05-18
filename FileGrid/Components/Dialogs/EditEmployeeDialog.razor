@@ -1,0 +1,42 @@
+﻿@using FileGrid.Entities
+@using FileGrid.Services.Interface
+<MudDialog>
+  <TitleContent>@(Employee.Id == null ? "添加员工" : "编辑员工")</TitleContent>
+  <DialogContent>
+    <MudForm @ref="_form" @bind-IsValid="_valid">
+      <MudTextField @bind-Value="Employee.Name" Label="姓名" Required="true" />
+      <MudTextField @bind-Value="Employee.Email" Label="邮箱" Required="true" />
+      <MudTextField @bind-Value="Employee.JobTitle" Label="职位" />
+    </MudForm>
+  </DialogContent>
+  <DialogActions>
+    <MudButton Variant="Variant.Text" OnClick="Cancel">取消</MudButton>
+    <MudButton Variant="Variant.Filled" OnClick="Save" Disabled="!_valid">保存</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+  [Parameter] public int CompanyId { get; set; }
+  [Parameter] public User Employee { get; set; }
+
+  [Inject] ICompanyService CompanyService { get; set; }
+
+  private MudForm _form;
+  private bool _valid;
+
+  private async Task Save()
+  {
+    await _form.Validate();
+    if (_valid)
+    {
+      Employee.CompanyId = CompanyId;
+      var result = (Employee.Id == null)
+      ? await CompanyService.AddEmployeeAsync(Employee)
+      : await CompanyService.UpdateEmployeeAsync(Employee);
+      MudDialog.Close(DialogResult.Ok(result ?? Employee));
+    }
+  }
+
+  private void Cancel() => MudDialog.Cancel();
+}

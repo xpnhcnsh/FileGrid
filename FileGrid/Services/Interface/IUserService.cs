@@ -9,4 +9,5 @@ public interface IUserService
     Task<User?> GetUserByEmailAsync(string email);
     Task<User?> GetUserByPhoneNumberAsync(string phoneNumber);
     Task<User?> UpdateUserAsync(User user);
+    Task<List<User>> GetUsersByCompanyIdAsync(int companyId);
 }

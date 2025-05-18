@@ -100,7 +100,11 @@
                     <MudTh>操作</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="公司名称">@context.Name</MudTd>
+                    <MudTd DataLabel="公司名称">
+                        <MudButton Variant="Variant.Text" Color="Color.Primary"
+                            OnClick="@(async () => await OpenCompanyDetailDialog(context))">
+                            @context.Name</MudButton>
+                    </MudTd>
                     <MudTd DataLabel="税号">@context.TaxCode</MudTd>
                     <MudTd DataLabel="类型">@context.Type</MudTd>
                     <MudTd DataLabel="操作">
@@ -263,6 +267,18 @@
                 Snackbar.Add($"\"{newCompany.Name}\"保存失败", Severity.Error);
             }
         }
+    }
+
+    private async Task OpenCompanyDetailDialog(Company company)
+    {
+        var parameters = new DialogParameters
+        {
+            ["CompanyId"] = company.Id,
+            ["CompanyName"] = company.Name
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true };
+        await DialogService.ShowAsync<CompanyDetailDialog>(
+        $"公司详情：{company.Name}", parameters, options);
     }
 
     private async Task DeleteCompany(int id)

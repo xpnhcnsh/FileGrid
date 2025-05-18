@@ -25,6 +25,17 @@ public class UserService(FileGridContext context) : IUserService
         return res ?? null;
     }
 
+    public async Task<List<User>> GetUsersByCompanyIdAsync(int companyId)
+    {
+        return await _context.Users.AsNoTracking()
+            .Include(u => u.AccessibleProjectGroups)
+            .Include(u => u.Company)
+            .Include(u => u.Department)
+            .Include(u => u.AccessibleProjectGroups)
+            .Include(u => u.AccessibleProjects)
+            .Where(u => u.CompanyId == companyId).ToListAsync();
+    }
+
     public Task<User?> GetUserByPhoneNumberAsync(string phoneNumber)
     {
         throw new NotImplementedException();
