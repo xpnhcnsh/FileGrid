@@ -10,5 +10,5 @@ public interface ICompanyService
     Task<bool> DeleteCompanyByIdAsync(int id);
     Task<List<Department>> GetAllDepartmentsAsync();
     Task<Department?> AddDepartmentAsync(Department dep);
-
+    Task<bool> ExistsByNameAsync(string name);
 }

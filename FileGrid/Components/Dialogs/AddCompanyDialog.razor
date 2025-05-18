@@ -1,19 +1,26 @@
 ﻿@using FileGrid.Entities
+@using FileGrid.Services.Interface
 @using FileGrid.Utils.Enum
 @using MudBlazor
+
+@inject ICompanyService CompanyService
 
 <MudDialog>
     <TitleContent>添加新公司</TitleContent>
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="_formIsValid">
-            <MudTextField @bind-Value="Company.Name" Label="公司名称" Required="true" />
+            <MudTextField @bind-Value="Company.Name" Label="公司名称" Required="true" Immediate="true"
+                Error="@(!string.IsNullOrEmpty(_nameDuplicateError))" ErrorText="@_nameDuplicateError"
+                Loading="@_isSubmitting" />
             <MudSelect T="CompanyType" @bind-Value="Company.Type" Label="类型" Required="true">
                 @foreach (var t in Enum.GetValues<CompanyType>())
                 {
-                    <MudSelectItem Value="@t">@t</MudSelectItem>
+                    if (t != CompanyType.CCTEGXian)
+                    {
+                        <MudSelectItem Value="@t">@t</MudSelectItem>
+                    }
                 }
             </MudSelect>
-            <MudTextField @bind-Value="Company.Address" Label="地址" />
             <MudTextField @bind-Value="Company.Description" Label="描述" />
         </MudForm>
     </DialogContent>
@@ -31,17 +38,51 @@
     [Parameter]
     public Company Company { get; set; } = null!;
 
-    private MudForm _form;
+    private string? _nameDuplicateError = string.Empty;
+    private bool _isSubmitting = false;
+
+    private MudForm _form = null!;
     private bool _formIsValid;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        // 确保初始化时不使用CCTEGXian作为默认值
+        // 如果当前是CCTEGXian，则设置为下一个有效值
+        if (Company.Type == CompanyType.CCTEGXian)
+        {
+            // 设置为第一个非CCTEGXian的值
+            foreach (var t in Enum.GetValues<CompanyType>())
+            {
+                if (t != CompanyType.CCTEGXian)
+                {
+                    Company.Type = t;
+                    break;
+                }
+            }
+        }
+    }
 
     private void Cancel() => MudDialog.Cancel();
 
     private async void Submit()
     {
+        _nameDuplicateError = null;
         await _form.Validate();
         if (_form.IsValid)
         {
+            _isSubmitting = true;
+            bool exists = await CompanyService.ExistsByNameAsync(Company.Name);
+            if (exists)
+            {
+                _nameDuplicateError = "该公司已存在";
+                StateHasChanged();
+                _isSubmitting = false;
+                return;
+            }
             MudDialog.Close(DialogResult.Ok(Company));
+            _isSubmitting = false;
         }
     }
 }

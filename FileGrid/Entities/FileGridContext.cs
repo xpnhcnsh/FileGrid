@@ -38,7 +38,7 @@ namespace FileGrid.Entities
             modelBuilder.Entity<Company>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Name).IsRequired();
+                entity.HasIndex(e => e.Name).IsUnique();
                 entity.Property(e => e.Type).IsRequired().HasConversion<string>();
                 entity.Property(e => e.Address);
                 entity.Property(e => e.Description);

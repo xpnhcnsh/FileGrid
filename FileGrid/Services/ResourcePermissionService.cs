@@ -4,14 +4,9 @@ using FileGrid.Utils.Enum;
 
 namespace FileGrid.Services
 {
-    public class ResourcePermissionService
+    public class ResourcePermissionService(FileGridContext context)
     {
-        private readonly FileGridContext _context;
-
-        public ResourcePermissionService(FileGridContext context)
-        {
-            _context = context;
-        }
+        private readonly FileGridContext _context = context;
 
         /// <summary>
         /// 验证用户对资源的操作权限

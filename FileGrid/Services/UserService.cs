@@ -22,8 +22,7 @@ public class UserService(FileGridContext context) : IUserService
             .Include(u => u.AccessibleProjectGroups)
             .Include(u => u.AccessibleProjects)
             .FirstOrDefaultAsync(u => u.Id == userId);
-        res ??= null;
-        return res;
+        return res ?? null;
     }
 
     public Task<User?> GetUserByPhoneNumberAsync(string phoneNumber)

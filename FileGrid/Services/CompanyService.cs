@@ -1,14 +1,18 @@
 using System;
 using FileGrid.Entities;
 using FileGrid.Services.Interface;
+using Microsoft.EntityFrameworkCore;
 
 namespace FileGrid.Services;
 
-public class CompanyService : ICompanyService
+public class CompanyService(FileGridContext context) : ICompanyService
 {
-    public Task<Company?> AddCompanyAsync(Company company)
+    private readonly FileGridContext _context = context;
+    public async Task<Company?> AddCompanyAsync(Company company)
     {
-        throw new NotImplementedException();
+        var entry = await _context.Companies.AddAsync(company);
+        int affected = await _context.SaveChangesAsync();
+        return affected > 0 ? entry.Entity : null;
     }
 
     public Task<Department?> AddDepartmentAsync(Department dep)
@@ -21,13 +25,19 @@ public class CompanyService : ICompanyService
         throw new NotImplementedException();
     }
 
-    public Task<List<Company>> GetAllCompaniesAsync()
+    public async Task<List<Company>> GetAllCompaniesAsync()
     {
-        return Task.FromResult(new List<Company>());
+        return await _context.Companies.Include(x => x.Departments)
+        .OrderBy(x => x.Name).ToListAsync();
     }
 
     public Task<List<Department>> GetAllDepartmentsAsync()
     {
         return Task.FromResult(new List<Department>());
+    }
+
+    public async Task<bool> ExistsByNameAsync(string name)
+    {
+        return await _context.Companies.AnyAsync(x => x.Name == name);
     }
 }

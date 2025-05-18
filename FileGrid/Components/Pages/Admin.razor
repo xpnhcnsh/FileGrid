@@ -94,17 +94,15 @@
             <!-- 公司列表 -->
             <MudTable Items="_filteredCompanies" Hover="true" Elevation="0" Breakpoint="Breakpoint.Sm">
                 <HeaderContent>
-                    <MudTh>公司 ID</MudTh>
                     <MudTh>公司名称</MudTh>
+                    <MudTh>税号</MudTh>
                     <MudTh>类型</MudTh>
-                    <MudTh>地址</MudTh>
                     <MudTh>操作</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="公司 ID">@context.Id</MudTd>
                     <MudTd DataLabel="公司名称">@context.Name</MudTd>
+                    <MudTd DataLabel="税号">@context.TaxCode</MudTd>
                     <MudTd DataLabel="类型">@context.Type</MudTd>
-                    <MudTd DataLabel="地址">@context.Address</MudTd>
                     <MudTd DataLabel="操作">
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
                             OnClick="@(() => DeleteCompany(context.Id))" />
@@ -253,7 +251,17 @@
         var result = await dialog.Result;
         if (!result.Canceled && result.Data is Company newCompany)
         {
-            // 保存 newCompany
+            var res = await CompanyService.AddCompanyAsync(newCompany);
+            if (res != null)
+            {
+                await LoadCompaniesAsync();
+                StateHasChanged();
+                Snackbar.Add($"\"{res.Name}\"已成功保存", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add($"\"{newCompany.Name}\"保存失败", Severity.Error);
+            }
         }
     }
 
