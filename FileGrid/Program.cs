@@ -54,6 +54,7 @@ builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddScoped<IInvitationCodeService, InvitationCodeService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IClipboardService, ClipboardService>();
 
 // builder.Services.Configure<CookiePolicyOptions>(options =>
 //             {

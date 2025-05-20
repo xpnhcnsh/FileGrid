@@ -11,9 +11,11 @@
 @attribute [Authorize(Roles = "God,CCTEGL0,CCTEGL1")]
 @inject AuthenticationStateProvider AuthProvider
 @inject IInvitationCodeService InvitationCodeService
+@inject IClipboardService ClipboardService
+
 @inject ICompanyService CompanyService
 @inject IDialogService DialogService
-
+@inject IJSRuntime JS
 @inject ISnackbar Snackbar
 
 <MudTabs Class="mt-4">
@@ -56,7 +58,11 @@
                     <MudTh>操作</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd>@context.Code</MudTd>
+                    <MudTd>
+                        <MudButton Variant="Variant.Text" OnClick="@(() => CopyToClipboard(context.Code))">
+                            @context.Code
+                        </MudButton>
+                    </MudTd>
                     <MudTd>@context.UserGroup</MudTd>
                     <MudTd>
                         <MudChip T="string" Color="@GetStatusColor(context)" Variant="Variant.Filled">
@@ -106,39 +112,23 @@
                             @context.Name</MudButton>
                     </MudTd>
                     <MudTd DataLabel="税号">@context.TaxCode</MudTd>
-                    <MudTd DataLabel="类型">@context.Type</MudTd>
+                    <MudTd DataLabel="类型">@(context.Type switch
+                        {
+                            CompanyType.CCTEGXian => "西安研究院",
+                            CompanyType.Outsource => "外协",
+                            CompanyType.PartA => "业主",
+                            _ => context.Type.ToString()
+                        })</MudTd>
                     <MudTd DataLabel="操作">
                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
                             OnClick="@(() => DeleteCompany(context.Id))" />
                     </MudTd>
                 </RowTemplate>
-
-                <ChildRowContent Context="company">
-                    <MudPaper Class="pa-4">
-                        <MudStack Row="true" Class="mb-2">
-                            <MudText Typo="Typo.subtitle1">部门列表</MudText>
-                            <MudButton Size="Size.Small" OnClick="@(() => OpenAddDepartment(company))">
-                                添加部门
-                            </MudButton>
-                        </MudStack>
-                        <MudTable Items="company.Departments" Dense="true">
-                            <HeaderContent>
-                                <MudTh>部门 ID</MudTh>
-                                <MudTh>部门名称</MudTh>
-                                <MudTh>描述</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="部门 ID">@context.Id</MudTd>
-                                <MudTd DataLabel="部门名称">@context.Name</MudTd>
-                                <MudTd DataLabel="描述">@context.Description</MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </MudPaper>
-                </ChildRowContent>
             </MudTable>
         </MudPaper>
     </MudTabPanel>
 </MudTabs>
+
 
 @code {
 
@@ -165,6 +155,16 @@
     : _allCompanies.Where(c => c.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase));
     #endregion
 
+    private bool _clipbordServiceInitialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_clipbordServiceInitialized)
+        {
+            await ClipboardService.InitializeAsync();
+            _clipbordServiceInitialized = true;
+        }
+    }
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthProvider.GetAuthenticationStateAsync();
@@ -316,5 +316,18 @@
         }
     }
     #endregion
+
+    private async Task CopyToClipboard(string text)
+    {
+        var success = await ClipboardService.CopyToClipboardAsync(text);
+        if (success)
+        {
+            Snackbar.Add("邀请码已复制到剪贴板", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("复制失败，请手动复制", Severity.Warning);
+        }
+    }
 
 }

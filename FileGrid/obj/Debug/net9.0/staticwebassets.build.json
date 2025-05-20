@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "xn/k1NO52vqdgAyEjXL2e3QUuZyEf8FPganAfu6UBgc=",
+  "Hash": "bG1zG5fOaesekpJeMwoIQHTm70MKiDaQy3mi8JpN1mE=",
   "Source": "FileGrid",
   "BasePath": "_content/FileGrid",
   "Mode": "Default",
@@ -101,6 +101,27 @@
       "OriginalItemSpec": "/Users/xpnhcnsh/.nuget/packages/mudblazor/8.5.1/staticwebassets/MudBlazor.min.js"
     },
     {
+      "Identity": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/2i201q8qhc-0l4q9a86pm.gz",
+      "SourceId": "FileGrid",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/",
+      "BasePath": "_content/FileGrid",
+      "RelativePath": "js/clipboard-helper#[.{fingerprint=0l4q9a86pm}]?.js.gz",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Alternative",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/js/clipboard-helper.js",
+      "AssetTraitName": "Content-Encoding",
+      "AssetTraitValue": "gzip",
+      "Fingerprint": "9r3axg5wbe",
+      "Integrity": "e33qpDswd2jMy/G6z2MCnSvA7IL/qyxi4yd2TQ1OSEE=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/js/clipboard-helper.js"
+    },
+    {
       "Identity": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/c76p1fl131-2jeq8efc6q.gz",
       "SourceId": "FileGrid",
       "SourceType": "Discovered",
@@ -183,6 +204,27 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/favicon.ico"
+    },
+    {
+      "Identity": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/js/clipboard-helper.js",
+      "SourceId": "FileGrid",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/",
+      "BasePath": "_content/FileGrid",
+      "RelativePath": "js/clipboard-helper#[.{fingerprint}]?.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "0l4q9a86pm",
+      "Integrity": "TFUdFH7kWGS/IZrASlMIKbnpZOsel78q7fOnbVUGLlc=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/js/clipboard-helper.js"
     }
   ],
   "Endpoints": [
@@ -1027,6 +1069,304 @@
         {
           "Name": "integrity",
           "Value": "sha256-UDfW/g1NO6ZBusSk277DL5ykZQYfBt+KP7lGtjLTDrk="
+        }
+      ]
+    },
+    {
+      "Route": "js/clipboard-helper.0l4q9a86pm.js",
+      "AssetFile": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/2i201q8qhc-0l4q9a86pm.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.002604166667"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "383"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"e33qpDswd2jMy/G6z2MCnSvA7IL/qyxi4yd2TQ1OSEE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 20 May 2025 16:47:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"TFUdFH7kWGS/IZrASlMIKbnpZOsel78q7fOnbVUGLlc=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "0l4q9a86pm"
+        },
+        {
+          "Name": "label",
+          "Value": "js/clipboard-helper.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-TFUdFH7kWGS/IZrASlMIKbnpZOsel78q7fOnbVUGLlc="
+        }
+      ]
+    },
+    {
+      "Route": "js/clipboard-helper.0l4q9a86pm.js",
+      "AssetFile": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/js/clipboard-helper.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "817"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"TFUdFH7kWGS/IZrASlMIKbnpZOsel78q7fOnbVUGLlc=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 20 May 2025 16:47:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "0l4q9a86pm"
+        },
+        {
+          "Name": "label",
+          "Value": "js/clipboard-helper.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-TFUdFH7kWGS/IZrASlMIKbnpZOsel78q7fOnbVUGLlc="
+        }
+      ]
+    },
+    {
+      "Route": "js/clipboard-helper.0l4q9a86pm.js.gz",
+      "AssetFile": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/2i201q8qhc-0l4q9a86pm.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "383"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"e33qpDswd2jMy/G6z2MCnSvA7IL/qyxi4yd2TQ1OSEE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 20 May 2025 16:47:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "0l4q9a86pm"
+        },
+        {
+          "Name": "label",
+          "Value": "js/clipboard-helper.js.gz"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-e33qpDswd2jMy/G6z2MCnSvA7IL/qyxi4yd2TQ1OSEE="
+        }
+      ]
+    },
+    {
+      "Route": "js/clipboard-helper.js",
+      "AssetFile": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/2i201q8qhc-0l4q9a86pm.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.002604166667"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "383"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"e33qpDswd2jMy/G6z2MCnSvA7IL/qyxi4yd2TQ1OSEE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 20 May 2025 16:47:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"TFUdFH7kWGS/IZrASlMIKbnpZOsel78q7fOnbVUGLlc=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-TFUdFH7kWGS/IZrASlMIKbnpZOsel78q7fOnbVUGLlc="
+        }
+      ]
+    },
+    {
+      "Route": "js/clipboard-helper.js",
+      "AssetFile": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/js/clipboard-helper.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "817"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"TFUdFH7kWGS/IZrASlMIKbnpZOsel78q7fOnbVUGLlc=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 20 May 2025 16:47:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-TFUdFH7kWGS/IZrASlMIKbnpZOsel78q7fOnbVUGLlc="
+        }
+      ]
+    },
+    {
+      "Route": "js/clipboard-helper.js.gz",
+      "AssetFile": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/2i201q8qhc-0l4q9a86pm.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "383"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"e33qpDswd2jMy/G6z2MCnSvA7IL/qyxi4yd2TQ1OSEE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Tue, 20 May 2025 16:47:51 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-e33qpDswd2jMy/G6z2MCnSvA7IL/qyxi4yd2TQ1OSEE="
         }
       ]
     }

@@ -5,6 +5,10 @@
       "PackagePath": "staticwebassets/favicon.ico"
     },
     {
+      "Id": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/js/clipboard-helper.js",
+      "PackagePath": "staticwebassets/js/clipboard-helper.js"
+    },
+    {
       "Id": "obj/Debug/net9.0/staticwebassets/msbuild.FileGrid.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
       "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
     },
