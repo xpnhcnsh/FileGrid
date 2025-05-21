@@ -2,7 +2,7 @@ namespace FileGrid.Utils.Enum;
 
 public enum CompanyType
 {
-    CCTEGXian = 0,
+    CCTEG = 0,
     Outsource,
     PartA
 }

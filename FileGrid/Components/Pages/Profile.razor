@@ -135,13 +135,10 @@
                                         }
                                         else
                                         {
-                                            <MudSelect T="int?" @bind-Value="_editUser.CompanyId" FullWidth="true"
-                                                Margin="Margin.Dense" OnValueChanged="">
-                                                @foreach (var c in _companyList)
-                                                {
-                                                    <MudSelectItem Value="c">@c.Name</MudSelectItem>
-                                                }
-                                            </MudSelect>
+                                            <MudAutocomplete T="Company" Label="公司" @bind-Value="_editUser.Company"
+                                                SearchFunc="SearchCompaniesAsync" ToStringFunc="@(c => c?.Name)"
+                                                ItemSelected="OnCompanySelected" Dense="true" Margin="Margin.Dense"
+                                                Clearable="true" />
                                         }
                                     </div>
                                 </MudListItem>
@@ -161,13 +158,9 @@
                                         }
                                         else
                                         {
-                                            <MudSelect T="int?" @bind-Value="_editUser.DepartmentId" FullWidth="true"
-                                                Margin="Margin.Dense">
-                                                @foreach (var dept in _filteredDepartments)
-                                                {
-                                                    <MudSelectItem Value="@dept.Id">@dept.Name</MudSelectItem>
-                                                }
-                                            </MudSelect>
+                                            <MudAutocomplete T="Department" Label="部门" @bind-Value="_editUser.Department"
+                                                SearchFunc="SearchDepartmentsAsync" ToStringFunc="@(d => d?.Name)" Dense="true"
+                                                Margin="Margin.Dense" Clearable="true" />
                                         }
                                     </div>
                                 </MudListItem>
@@ -212,8 +205,7 @@
     public Guid Id { get; } = Guid.NewGuid();
     private List<Company> _companyList = new();
     private List<Department> _departmentList = new();
-    private IEnumerable<Department> _filteredDepartments =>
-    _departmentList.Where(d => d.CompanyId == _editUser.CompanyId);
+    private List<Department> _filteredDepartments = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -230,24 +222,31 @@
                 {
                     _avatar = temp;
                 }
-                _companyList = await CompanyService.GetAllCompaniesAsync();
-                _departmentList = await CompanyService.GetAllDepartmentsAsync();
+                _companyList = (await CompanyService.GetAllCompaniesAsync()).OrderBy(x => x.Name).ToList();
+                _departmentList = (await CompanyService.GetAllDepartmentsAsync()).OrderBy(x => x.Name).ToList();
+
+                _editUser = new User
+                {
+                    Id = _user.Id,
+                    Email = _user.Email,
+                    Name = _user.Name,
+                    PhoneNumber = _user.PhoneNumber,
+                    Department = _user.Department,
+                    JobTitle = _user.JobTitle,
+                    Company = _user.Company
+                };
+
+                if (_editUser.CompanyId == null && _companyList.Any())
+                {
+                    _editUser.CompanyId = _companyList.First().Id;
+                }
             }
         }
     }
 
     private void EnableEdit()
     {
-        _editUser = new User
-        {
-            Id = _user.Id,
-            Email = _user.Email,
-            Name = _user.Name,
-            PhoneNumber = _user.PhoneNumber,
-            Department = _user.Department,
-            JobTitle = _user.JobTitle,
-            Company = _user.Company
-        };
+
         _editMode = true;
     }
 
@@ -268,8 +267,60 @@
         _editMode = false;
     }
 
-    private void OnCompanyChanged()
+    private void FilterDepartments()
     {
-        _editUser.DepartmentId = 0;
+        if (_editUser.CompanyId != null)
+        {
+            _filteredDepartments = _departmentList.Where(d => d.CompanyId == _editUser.CompanyId).ToList();
+
+            // 如果用户未设置部门，默认选中部门列表的第一个部门
+            if (_editUser.DepartmentId == null && _filteredDepartments.Any())
+            {
+                _editUser.DepartmentId = _filteredDepartments.First().Id;
+            }
+        }
+        else
+        {
+            _filteredDepartments = new();
+            _editUser.DepartmentId = null;
+        }
     }
+
+    private Task<IEnumerable<Company>> SearchCompaniesAsync(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(_companyList.AsEnumerable());
+
+        var result = _companyList
+        .Where(c => c.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+
+        return Task.FromResult(result);
+    }
+
+    private Task<IEnumerable<Department>> SearchDepartmentsAsync(string value, CancellationToken cancellationToken)
+    {
+        if (_editUser.CompanyId == null)
+            return Task.FromResult(Enumerable.Empty<Department>());
+
+        var departments = _departmentList
+        .Where(d => d.CompanyId == _editUser.CompanyId);
+
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(departments);
+
+        var result = departments
+        .Where(d => d.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+
+        return Task.FromResult(result);
+    }
+
+    private void OnCompanySelected(Company selectedCompany)
+    {
+        _editUser.CompanyId = selectedCompany?.Id;
+        _editUser.Company = selectedCompany;
+        _editUser.Department = null;
+        _editUser.DepartmentId = null;
+    }
+
+
 }

@@ -22,7 +22,8 @@ public class CompanyService(FileGridContext context) : ICompanyService
 
     public async Task<bool> DeleteCompanyByIdAsync(int id)
     {
-        throw new NotImplementedException();
+        var affectedRows = await _context.Companies.Where(x => x.Id == id).ExecuteDeleteAsync();
+        return affectedRows > 0;
     }
 
     public async Task<List<Company>> GetAllCompaniesAsync()
@@ -33,7 +34,7 @@ public class CompanyService(FileGridContext context) : ICompanyService
 
     public async Task<List<Department>> GetAllDepartmentsAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Departments.ToListAsync();
     }
 
     public async Task<List<Department>> GetDepartmentsByCompanyIdAsync(int companyId)
@@ -59,9 +60,17 @@ public class CompanyService(FileGridContext context) : ICompanyService
         throw new NotImplementedException();
     }
 
-    public Task<User?> UpdateEmployeeAsync(User user)
+    public async Task<User?> UpdateEmployeeAsync(User user)
     {
-        throw new NotImplementedException();
+        var affected = await _context.Users
+        .Where(x => x.Id == user.Id)
+        .ExecuteUpdateAsync(setters => setters
+            .SetProperty(u => u.Name, user.Name)
+            .SetProperty(u => u.Email, user.Email)
+            .SetProperty(u => u.JobTitle, user.JobTitle)
+        );
+
+        return affected > 0 ? user : null;
     }
 
     public Task<bool> DeleteEmployeeByIdAsync(Guid userId)

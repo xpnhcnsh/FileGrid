@@ -114,7 +114,7 @@
                     <MudTd DataLabel="税号">@context.TaxCode</MudTd>
                     <MudTd DataLabel="类型">@(context.Type switch
                         {
-                            CompanyType.CCTEGXian => "西安研究院",
+                            CompanyType.CCTEG => "中煤",
                             CompanyType.Outsource => "外协",
                             CompanyType.PartA => "业主",
                             _ => context.Type.ToString()

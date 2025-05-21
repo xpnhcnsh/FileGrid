@@ -12,14 +12,17 @@
             <MudTextField @bind-Value="Company.Name" Label="公司名称" Required="true" Immediate="true"
                 Error="@(!string.IsNullOrEmpty(_nameDuplicateError))" ErrorText="@_nameDuplicateError"
                 Loading="@_isSubmitting" />
-            <MudSelect T="CompanyType" @bind-Value="Company.Type" Label="类型" Required="true">
+            <MudSelect Class="mt-2" T="CompanyType" @bind-Value="Company.Type" Label="类型" Required="true">
                 @foreach (var t in Enum.GetValues<CompanyType>())
                 {
-                    if (t != CompanyType.CCTEGXian)
-                    {
-                        <MudSelectItem Value="@t">@t</MudSelectItem>
-                    }
-                }
+                    <MudSelectItem Value="@t">@(t switch
+                        {
+                            CompanyType.CCTEG => "中煤",
+                            CompanyType.Outsource => "外协",
+                            CompanyType.PartA => "业主",
+                            _ => t.ToString()
+                        })</MudSelectItem>
+                                }
             </MudSelect>
             <MudTextField @bind-Value="Company.Description" Label="描述" />
         </MudForm>
@@ -47,21 +50,6 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-
-        // 确保初始化时不使用CCTEGXian作为默认值
-        // 如果当前是CCTEGXian，则设置为下一个有效值
-        if (Company.Type == CompanyType.CCTEGXian)
-        {
-            // 设置为第一个非CCTEGXian的值
-            foreach (var t in Enum.GetValues<CompanyType>())
-            {
-                if (t != CompanyType.CCTEGXian)
-                {
-                    Company.Type = t;
-                    break;
-                }
-            }
-        }
     }
 
     private void Cancel() => MudDialog.Cancel();
