@@ -7,9 +7,8 @@
             <MudTextField @bind-Value="Department.Name" Label="部门" Required="true" />
             <MudTextField @bind-Value="Department.Description" Label="描述" />
         </MudForm>
-        <MudSwitch Immediate="true" T="bool" @bind-Checked="Department.IsProjectGroup" Color="Color.Primary"
+        <MudSwitch Immediate="true" T="bool" ValueChanged="@(newValue=>OnProjectGroupChanged(newValue))" Color="Color.Primary"
             Label="是否为项目组" />
-        <MudText Typo="Typo.body1">当前值：@Department.IsProjectGroup</MudText>
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Text" OnClick="Cancel">取消</MudButton>
@@ -32,6 +31,34 @@
     private MudForm _form;
     private bool _valid = false;
 
+    private bool _isProjectGroup;
+
+    protected override void OnInitialized()
+    {
+        // 初始化本地变量
+        _isProjectGroup = Department?.IsProjectGroup ?? false;
+
+        // 确保 Department 对象不为空
+        if (Department == null)
+        {
+            Department = new Department 
+            { 
+                Name = string.Empty, 
+                CompanyId = CompanyId,
+                IsProjectGroup = false 
+            };
+            _isProjectGroup = false;
+        }
+
+        // 如果是新建部门，确保 CompanyId 正确设置
+        if (Department.Id == 0)
+        {
+            Department.CompanyId = CompanyId;
+        }
+
+        Console.WriteLine($"OnInitialized - Department.IsProjectGroup: {Department.IsProjectGroup}, _isProjectGroup: {_isProjectGroup}");
+    }
+
     private async Task Save()
     {
         await _form.Validate();
@@ -51,4 +78,9 @@
     }
 
     private void Cancel() => MudDialog.Cancel();
+
+    private void OnProjectGroupChanged(bool newValue)
+    {
+        Department.IsProjectGroup = newValue;
+    }
 }

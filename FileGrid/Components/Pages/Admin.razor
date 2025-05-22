@@ -12,7 +12,6 @@
 @inject AuthenticationStateProvider AuthProvider
 @inject IInvitationCodeService InvitationCodeService
 @inject IClipboardService ClipboardService
-
 @inject ICompanyService CompanyService
 @inject IDialogService DialogService
 @inject IJSRuntime JS
@@ -137,7 +136,6 @@
 
 
 @code {
-
     #region InvitationCode管理
     private List<InvitationCode> _invitationCodes = new();
     private UserGroup _selectedUserGroup = UserGroup.CCTEGL0;
