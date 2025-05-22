@@ -6,13 +6,13 @@
 
 <MudDialog MaxWidth="MaxWidth.Large" FullWidth="true">
     <TitleContent>
-        公司详情：@CompanyName
+        @CompanyName
     </TitleContent>
     <DialogContent>
         <MudTabs>
             <!-- Tab 1: 人员管理 -->
             <MudTabPanel Text="员工列表">
-                <MudStack Row="true" Class="mb-2">
+                <MudStack Row="true" Class="mb-2 mt-2">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddEmployee">
                         添加联系人
                     </MudButton>
@@ -40,7 +40,7 @@
 
             <!-- Tab 2: 部门管理 -->
             <MudTabPanel Text="部门列表">
-                <MudStack Row="true" Class="mb-2">
+                <MudStack Row="true" Class="mb-2 mt-2">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddDepartment">
                         添加部门
                     </MudButton>
@@ -111,6 +111,7 @@
             if (saved != null)
             {
                 _users.Add(saved);
+                _users = await UserService.GetUsersByCompanyIdAsync(CompanyId);
             }
         }
     }
@@ -142,8 +143,6 @@
         }
     }
 
-    // --- 部门 CRUD ---
-
     private async Task AddDepartment()
     {
         var parameters = new DialogParameters
@@ -156,12 +155,8 @@
         var res = await dlg.Result;
         if (!res.Canceled && res.Data is Department dept)
         {
-            var saved = await CompanyService.AddDepartmentAsync(dept);
-            if (saved != null)
-            {
-                _departments.Add(saved);
-                Snackbar.Add("部门添加成功", Severity.Success);
-            }
+            Snackbar.Add("部门添加成功", Severity.Success);
+            _departments = await CompanyService.GetDepartmentsByCompanyIdAsync(CompanyId);
         }
     }
 
@@ -178,6 +173,7 @@
         if (!res.Canceled)
         {
             Snackbar.Add("部门更新成功", Severity.Success);
+            _departments = await CompanyService.GetDepartmentsByCompanyIdAsync(CompanyId);
         }
     }
 
@@ -188,6 +184,7 @@
         {
             _departments.Remove(dept);
             Snackbar.Add("部门已删除", Severity.Success);
+            _departments = await CompanyService.GetDepartmentsByCompanyIdAsync(CompanyId);
         }
     }
 }

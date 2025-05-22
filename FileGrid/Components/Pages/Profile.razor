@@ -4,6 +4,7 @@
 @using FileGrid.Services.Interface
 @using Microsoft.AspNetCore.Components.Web
 @using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IUserService UserService
@@ -197,6 +198,7 @@
 
 
 @code {
+    @inject FileGridContext _context
     private bool _editMode = false;
     private User _user = null!;
     private User _editUser = null!;
@@ -246,20 +248,44 @@
 
     private void EnableEdit()
     {
-
         _editMode = true;
     }
 
     private async Task SaveAsync()
     {
-        User? updated = await UserService.UpdateUserAsync(_editUser);
-        if (updated == null)
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            Snackbar.Add("更新信息失败", Severity.Error);
-            return;
+            _editUser.DepartmentId = _editUser.Department?.Id;
+            _editUser.CompanyId = _editUser.Company?.Id;
+            User? updated = await UserService.UpdateUserAsync(_editUser);
+            if (updated == null)
+            {
+                Snackbar.Add("更新信息失败", Severity.Error);
+                return;
+            }
+
+            if (_editUser.DepartmentId != null)
+            {
+                Guid userId = _editUser.Id;
+                int deptId = (int)_editUser.DepartmentId!;
+
+                // 如果该部门是项目组，则添加到 UserProjectGroup 表
+                if (_editUser.Department?.IsProjectGroup == true)
+                {
+                    await UserService.EnsureUserProjectGroupAsync(userId, deptId);
+                }
+            }
+            await transaction.CommitAsync();
+            _user = updated!;
+            _editMode = false;
+            Snackbar.Add("更新信息成功", Severity.Success);
         }
-        _user = updated!;
-        _editMode = false;
+        catch
+        {
+            await transaction.RollbackAsync();
+            Snackbar.Add("更新信息失败", Severity.Error);
+        }
     }
 
     private void CancelEdit()
@@ -271,7 +297,7 @@
     {
         if (_editUser.CompanyId != null)
         {
-            _filteredDepartments = _departmentList.Where(d => d.CompanyId == _editUser.CompanyId).ToList();
+            _filteredDepartments = _departmentList.Where(d => d.Company == _editUser.Company).ToList();
 
             // 如果用户未设置部门，默认选中部门列表的第一个部门
             if (_editUser.DepartmentId == null && _filteredDepartments.Any())
@@ -302,13 +328,14 @@
         if (_editUser.CompanyId == null)
             return Task.FromResult(Enumerable.Empty<Department>());
 
-        var departments = _departmentList
-        .Where(d => d.CompanyId == _editUser.CompanyId);
+        _filteredDepartments = _departmentList
+        .Where(d => d.CompanyId == _editUser.Company?.Id)
+        .ToList();
 
         if (string.IsNullOrWhiteSpace(value))
-            return Task.FromResult(departments);
+            return Task.FromResult(_filteredDepartments.AsEnumerable());
 
-        var result = departments
+        var result = _filteredDepartments
         .Where(d => d.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
 
         return Task.FromResult(result);
@@ -320,7 +347,6 @@
         _editUser.Company = selectedCompany;
         _editUser.Department = null;
         _editUser.DepartmentId = null;
+        StateHasChanged();
     }
-
-
 }

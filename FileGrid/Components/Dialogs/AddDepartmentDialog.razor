@@ -3,9 +3,11 @@
 <MudDialog>
     <TitleContent>添加新部门</TitleContent>
     <DialogContent>
-        <MudForm @ref="_form">
+        <MudForm @ref="_form" @bind-IsValid="_valid">
             <MudTextField @bind-Value="Department.Name" Label="部门名称" Required="true" />
             <MudTextField @bind-Value="Department.Description" Label="描述" />
+            <MudSwitch T="bool" @bind-Checked="Department.IsProjectGroup" Color="Color.Primary" Label="是否为项目组" />
+            <MudText Typo="Typo.body1">当前值：@Department.IsProjectGroup</MudText>
         </MudForm>
     </DialogContent>
     <DialogActions>
@@ -16,18 +18,23 @@
 
 @code {
     [CascadingParameter]
-    IMudDialogInstance MudDialog { get; set; } = null!;
+    IMudDialogInstance MudDialog { get; set; }
     [Parameter]
     public int CompanyId { get; set; }
     [Parameter]
     public Department Department { get; set; } = null!;
     private MudForm _form;
+    private bool _valid = false;
 
     void Cancel() => MudDialog.Cancel();
 
-    void Submit()
+    private async Task Submit()
     {
-        Department.CompanyId = CompanyId;
-        MudDialog.Close(DialogResult.Ok(Department));
+        await _form.Validate();
+        if (!_valid)
+        {
+            Department.CompanyId = CompanyId;
+            MudDialog.Close(DialogResult.Ok(Department));
+        }
     }
 }

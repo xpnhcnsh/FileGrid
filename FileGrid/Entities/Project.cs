@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using FileGrid.Utils.Enum;
 
 namespace FileGrid.Entities;
@@ -10,8 +11,10 @@ public class Project
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public int ProjectGroupId { get; set; }  // 所属项目组
-    public virtual ProjectGroup? ProjectGroup { get; set; }  // 导航属性
+    public int? ProjectGroupId { get; set; }  // 所属项目组
+
+    [ForeignKey(nameof(ProjectGroupId))]
+    public virtual Department? ProjectGroup { get; set; }  // 导航属性
     public ProjectStatus Status { get; set; } = ProjectStatus.Active;  // 项目状态
     public DateTime? PlannedStartDate { get; set; }  // 项目预计开始时间
     public DateTime? ActualStartDate { get; set; }  // 项目实际开始时间

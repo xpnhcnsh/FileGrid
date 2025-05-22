@@ -59,10 +59,16 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd>
-                        <MudButton Variant="Variant.Text" OnClick="@(() => CopyToClipboard(context.Code))">
-                            @context.Code
-                        </MudButton>
+                        <div class="d-flex flex-wrap align-center gap-2" style="word-break: break-all;">
+                            <MudText Typo="Typo.body2" Class="flex-grow-1" Style="text-transform: none; min-width: 0;">
+                                @context.Code
+                            </MudText>
+                            <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
+                                OnClick="@(() => CopyToClipboard(context.Code))" Class="flex-shrink-0" />
+                        </div>
                     </MudTd>
+
+
                     <MudTd>@context.UserGroup</MudTd>
                     <MudTd>
                         <MudChip T="string" Color="@GetStatusColor(context)" Variant="Variant.Filled">
@@ -278,7 +284,7 @@
         };
         var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true };
         await DialogService.ShowAsync<CompanyDetailDialog>(
-        $"公司详情：{company.Name}", parameters, options);
+        $"{company.Name}", parameters, options);
     }
 
     private async Task DeleteCompany(int id)

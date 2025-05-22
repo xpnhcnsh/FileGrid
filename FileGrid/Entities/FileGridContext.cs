@@ -14,7 +14,6 @@ namespace FileGrid.Entities
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<ProjectFile> ProjectFiles { get; set; }
-        public DbSet<ProjectGroup> ProjectGroups { get; set; }
         public DbSet<ProjectOutsource> ProjectOutsources { get; set; }
         public DbSet<ProjectPartA> ProjectPartAs { get; set; }
         public DbSet<ProjectResource> ProjectResources { get; set; }
@@ -28,6 +27,7 @@ namespace FileGrid.Entities
         public DbSet<UserGroupPermissionPolicy> UserGroupPermissionPolicies { get; set; }
         public DbSet<UserPermission> UserPermissions { get; set; }
         public DbSet<UserProject> UserProjects { get; set; }
+        public DbSet<UserDepartment> UserDepartments { get; set; }
         public DbSet<UserProjectGroup> UserProjectGroups { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<InvitationCode> InvitationCodes { get; set; }
@@ -62,10 +62,30 @@ namespace FileGrid.Entities
                 entity.Property(e => e.Name).IsRequired();
                 entity.Property(e => e.Description);
                 entity.Property(e => e.CompanyId).IsRequired();
+                entity.Property(e => e.IsProjectGroup)
+                        .IsRequired()
+                        .HasDefaultValue(false); // 默认不是项目组  
 
                 entity.HasOne(e => e.Company)
                     .WithMany(c => c.Departments)
                     .HasForeignKey(e => e.CompanyId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(d => d.Projects)
+                    .WithOne(p => p.ProjectGroup)
+                    .HasForeignKey(p => p.ProjectGroupId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // 用户所属部门关系
+                entity.HasMany(d => d.UserDepartments)
+                    .WithOne(ud => ud.Department)
+                    .HasForeignKey(ud => ud.DepartmentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // 用户可访问项目组关系
+                entity.HasMany(d => d.AccessibleUsers)
+                    .WithOne(upg => upg.ProjectGroup)
+                    .HasForeignKey(upg => upg.ProjectGroupId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -92,7 +112,7 @@ namespace FileGrid.Entities
                 entity.HasOne(e => e.ProjectGroup)
                     .WithMany()
                     .HasForeignKey(e => e.ProjectGroupId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.Manager)
                     .WithMany()
@@ -146,13 +166,6 @@ namespace FileGrid.Entities
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // ProjectGroup
-            modelBuilder.Entity<ProjectGroup>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Name).IsRequired();
-                entity.Property(e => e.Description);
-            });
 
             // ProjectOutsource (Many-to-Many relationship between Project and Company)
             modelBuilder.Entity<ProjectOutsource>(entity =>
@@ -321,6 +334,18 @@ namespace FileGrid.Entities
                     .WithMany()
                     .HasForeignKey(e => e.DepartmentId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                // 用户所属部门关系
+                entity.HasMany(u => u.UserDepartments)
+                    .WithOne(ud => ud.User)
+                    .HasForeignKey(ud => ud.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // 用户可访问项目组关系
+                entity.HasMany(u => u.AccessibleProjectGroups)
+                    .WithOne(upg => upg.User)
+                    .HasForeignKey(upg => upg.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // UserGroupPermissionPolicy
@@ -364,7 +389,22 @@ namespace FileGrid.Entities
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // UserProjectGroup (Many-to-Many relationship between User and ProjectGroup)
+
+            modelBuilder.Entity<UserDepartment>(entity =>
+            {
+                entity.HasKey(e => new { e.UserId, e.DepartmentId });
+
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.UserDepartments)
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Department)
+                      .WithMany(d => d.UserDepartments)
+                      .HasForeignKey(e => e.DepartmentId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<UserProjectGroup>(entity =>
             {
                 entity.HasKey(e => new { e.UserId, e.ProjectGroupId });
@@ -374,8 +414,8 @@ namespace FileGrid.Entities
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(e => e.Group)
-                    .WithMany(g => g.UserProjectGroups)
+                entity.HasOne(e => e.ProjectGroup)
+                    .WithMany(d => d.AccessibleUsers)
                     .HasForeignKey(e => e.ProjectGroupId)
                     .OnDelete(DeleteBehavior.Cascade);
             });

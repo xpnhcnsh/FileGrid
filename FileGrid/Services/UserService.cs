@@ -16,7 +16,6 @@ public class UserService(FileGridContext context) : IUserService
     public async Task<User?> GetUserByIdAsync(Guid userId)
     {
         var res = await _context.Users.AsNoTracking()
-            .Include(u => u.AccessibleProjectGroups)
             .Include(u => u.Company)
             .Include(u => u.Department)
             .Include(u => u.AccessibleProjectGroups)
@@ -53,6 +52,22 @@ public class UserService(FileGridContext context) : IUserService
         .SetProperty(u => u.JobTitle, _ => user.JobTitle)
         );
         return toUpdateCount > 0 ? user : null;
+    }
+
+    public async Task EnsureUserProjectGroupAsync(Guid userId, int projectGroupId)
+    {
+        var exists = await _context.UserProjectGroups
+            .AnyAsync(upg => upg.UserId == userId && upg.ProjectGroupId == projectGroupId);
+
+        if (!exists)
+        {
+            _context.UserProjectGroups.Add(new UserProjectGroup
+            {
+                UserId = userId,
+                ProjectGroupId = projectGroupId
+            });
+            await _context.SaveChangesAsync();
+        }
     }
 
 }

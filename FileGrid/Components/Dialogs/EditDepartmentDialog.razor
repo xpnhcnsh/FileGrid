@@ -5,8 +5,11 @@
     <DialogContent>
         <MudForm @ref="_form" @bind-IsValid="_valid">
             <MudTextField @bind-Value="Department.Name" Label="部门" Required="true" />
-            <MudTextField @bind-Value="Department.Description" Label="描述" Required="true" />
+            <MudTextField @bind-Value="Department.Description" Label="描述" />
         </MudForm>
+        <MudSwitch Immediate="true" T="bool" @bind-Checked="Department.IsProjectGroup" Color="Color.Primary"
+            Label="是否为项目组" />
+        <MudText Typo="Typo.body1">当前值：@Department.IsProjectGroup</MudText>
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Text" OnClick="Cancel">取消</MudButton>
@@ -21,12 +24,13 @@
     public int CompanyId { get; set; }
     [Parameter]
     public Department Department { get; set; } = null!;
-
+    [Inject]
+    ISnackbar Snackbar { get; set; } = null!;
     [Inject]
     ICompanyService CompanyService { get; set; }
 
     private MudForm _form;
-    private bool _valid;
+    private bool _valid = false;
 
     private async Task Save()
     {
@@ -37,6 +41,11 @@
             var result = (Department.Id == 0)
             ? await CompanyService.AddDepartmentAsync(Department)
             : await CompanyService.UpdateDepartmentAsync(Department);
+            if (result == null)
+            {
+                Snackbar.Add("操作失败，部门名称可能重复", Severity.Error);
+                return;
+            }
             MudDialog.Close(DialogResult.Ok(result ?? Department));
         }
     }

@@ -10,4 +10,5 @@ public interface IUserService
     Task<User?> GetUserByPhoneNumberAsync(string phoneNumber);
     Task<User?> UpdateUserAsync(User user);
     Task<List<User>> GetUsersByCompanyIdAsync(int companyId);
+    Task EnsureUserProjectGroupAsync(Guid userId, int projectGroupId);
 }

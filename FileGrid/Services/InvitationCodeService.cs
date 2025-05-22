@@ -144,6 +144,7 @@ public class InvitationCodeService(IConfiguration config, FileGridContext contex
 
             switch (code.Length % 4)
             {
+                case 1: base64 += "==="; break;
                 case 2: base64 += "=="; break;
                 case 3: base64 += "="; break;
             }

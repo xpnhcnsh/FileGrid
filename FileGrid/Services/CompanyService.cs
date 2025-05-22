@@ -15,9 +15,18 @@ public class CompanyService(FileGridContext context) : ICompanyService
         return affected > 0 ? entry.Entity : null;
     }
 
+    public async Task<bool> DepartmentExistsByNameAsync(string name)
+    {
+        return await _context.Departments.AnyAsync(x => x.Name == name);
+    }
+
     public async Task<Department?> AddDepartmentAsync(Department dep)
     {
-        throw new NotImplementedException();
+        if (await DepartmentExistsByNameAsync(dep.Name))
+            return null;
+        await _context.Departments.AddAsync(dep);
+        int affected = await _context.SaveChangesAsync();
+        return affected > 0 ? dep : null;
     }
 
     public async Task<bool> DeleteCompanyByIdAsync(int id)
@@ -52,7 +61,14 @@ public class CompanyService(FileGridContext context) : ICompanyService
 
     public async Task<Department?> UpdateDepartmentAsync(Department dep)
     {
-        throw new NotImplementedException();
+        var affected = await _context.Departments
+        .Where(x => x.Id == dep.Id)
+        .ExecuteUpdateAsync(setters => setters
+            .SetProperty(d => d.Name, dep.Name)
+            .SetProperty(d => d.Description, dep.Description)
+        );
+
+        return affected > 0 ? dep : null;
     }
 
     public Task<User?> AddEmployeeAsync(User user)
@@ -78,8 +94,9 @@ public class CompanyService(FileGridContext context) : ICompanyService
         throw new NotImplementedException();
     }
 
-    public Task<bool> DeleteDepartmentByIdAsync(int depId)
+    public async Task<bool> DeleteDepartmentByIdAsync(int depId)
     {
-        throw new NotImplementedException();
+        var affectedRows = await _context.Departments.Where(x => x.Id == depId).ExecuteDeleteAsync();
+        return affectedRows > 0;
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FileGrid.Migrations
 {
     /// <inheritdoc />
-    public partial class deleteCompanyId1 : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,20 +21,6 @@ namespace FileGrid.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Permissions", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ProjectGroups",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProjectGroups", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -70,7 +56,7 @@ namespace FileGrid.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -90,7 +76,8 @@ namespace FileGrid.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CompanyId = table.Column<int>(type: "int", nullable: false)
+                    CompanyId = table.Column<int>(type: "int", nullable: false),
+                    IsProjectGroup = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -188,7 +175,8 @@ namespace FileGrid.Migrations
                     SafetyLeaderId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     ProductionLeaderId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     TechnicalLeaderId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PartAId = table.Column<int>(type: "int", nullable: true)
+                    PartAId = table.Column<int>(type: "int", nullable: true),
+                    DepartmentId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -200,11 +188,16 @@ namespace FileGrid.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Projects_ProjectGroups_ProjectGroupId",
+                        name: "FK_Projects_Departments_DepartmentId",
+                        column: x => x.DepartmentId,
+                        principalTable: "Departments",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Projects_Departments_ProjectGroupId",
                         column: x => x.ProjectGroupId,
-                        principalTable: "ProjectGroups",
+                        principalTable: "Departments",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Projects_Users_DeputyManagerId",
                         column: x => x.DeputyManagerId,
@@ -292,6 +285,30 @@ namespace FileGrid.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserDepartments",
+                columns: table => new
+                {
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    DepartmentId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserDepartments", x => new { x.UserId, x.DepartmentId });
+                    table.ForeignKey(
+                        name: "FK_UserDepartments_Departments_DepartmentId",
+                        column: x => x.DepartmentId,
+                        principalTable: "Departments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserDepartments_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserPermissions",
                 columns: table => new
                 {
@@ -326,9 +343,9 @@ namespace FileGrid.Migrations
                 {
                     table.PrimaryKey("PK_UserProjectGroups", x => new { x.UserId, x.ProjectGroupId });
                     table.ForeignKey(
-                        name: "FK_UserProjectGroups_ProjectGroups_ProjectGroupId",
+                        name: "FK_UserProjectGroups_Departments_ProjectGroupId",
                         column: x => x.ProjectGroupId,
-                        principalTable: "ProjectGroups",
+                        principalTable: "Departments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -585,6 +602,12 @@ namespace FileGrid.Migrations
                 column: "ContactUserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Companies_Name",
+                table: "Companies",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Departments_CompanyId",
                 table: "Departments",
                 column: "CompanyId");
@@ -618,6 +641,11 @@ namespace FileGrid.Migrations
                 name: "IX_ProjectParticipants_ProjectId",
                 table: "ProjectParticipants",
                 column: "ProjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Projects_DepartmentId",
+                table: "Projects",
+                column: "DepartmentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Projects_DeputyManagerId",
@@ -683,6 +711,11 @@ namespace FileGrid.Migrations
                 name: "IX_ShareUsers_UserId",
                 table: "ShareUsers",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserDepartments_DepartmentId",
+                table: "UserDepartments",
+                column: "DepartmentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserPermissions_PermissionId",
@@ -755,6 +788,9 @@ namespace FileGrid.Migrations
                 name: "ShareUsers");
 
             migrationBuilder.DropTable(
+                name: "UserDepartments");
+
+            migrationBuilder.DropTable(
                 name: "UserGroupPermissionPolicies");
 
             migrationBuilder.DropTable(
@@ -786,9 +822,6 @@ namespace FileGrid.Migrations
 
             migrationBuilder.DropTable(
                 name: "Resources");
-
-            migrationBuilder.DropTable(
-                name: "ProjectGroups");
 
             migrationBuilder.DropTable(
                 name: "Users");

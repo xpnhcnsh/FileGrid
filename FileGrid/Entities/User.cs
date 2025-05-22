@@ -33,7 +33,8 @@ public class User
     public ICollection<Share> Shares { get; set; } = [];
     public ICollection<ShareUser> SharedWithMe { get; set; } = [];
     public ICollection<Resource> UploadedResources { get; set; } = [];
-    public virtual ICollection<UserProjectGroup> AccessibleProjectGroups { get; set; } = [];  // L2可访问项目组
+    public virtual ICollection<UserDepartment> UserDepartments { get; set; } = [];
+    public virtual ICollection<UserProjectGroup> AccessibleProjectGroups { get; set; } = [];
     public virtual ICollection<UserProject> AccessibleProjects { get; set; } = [];     // L3可访问项目
 }
 

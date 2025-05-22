@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FileGrid.Migrations
 {
     [DbContext(typeof(FileGridContext))]
-    [Migration("20250518143844_AddIndexOnCompanyName")]
-    partial class AddIndexOnCompanyName
+    [Migration("20250522081934_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -76,6 +76,11 @@ namespace FileGrid.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsProjectGroup")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -163,6 +168,9 @@ namespace FileGrid.Migrations
                     b.Property<DateTime?>("ActualStartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
+
                     b.Property<Guid?>("DeputyManagerId")
                         .HasColumnType("uniqueidentifier");
 
@@ -203,6 +211,8 @@ namespace FileGrid.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
 
                     b.HasIndex("DeputyManagerId");
 
@@ -254,27 +264,6 @@ namespace FileGrid.Migrations
                     b.HasIndex("ProjectResourceId");
 
                     b.ToTable("ProjectFiles");
-                });
-
-            modelBuilder.Entity("FileGrid.Entities.ProjectGroup", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ProjectGroups");
                 });
 
             modelBuilder.Entity("FileGrid.Entities.ProjectOutsource", b =>
@@ -550,6 +539,21 @@ namespace FileGrid.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("FileGrid.Entities.UserDepartment", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "DepartmentId");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.ToTable("UserDepartments");
+                });
+
             modelBuilder.Entity("FileGrid.Entities.UserGroupPermissionPolicy", b =>
                 {
                     b.Property<int>("Id")
@@ -691,6 +695,10 @@ namespace FileGrid.Migrations
 
             modelBuilder.Entity("FileGrid.Entities.Project", b =>
                 {
+                    b.HasOne("FileGrid.Entities.Department", null)
+                        .WithMany("Projects")
+                        .HasForeignKey("DepartmentId");
+
                     b.HasOne("FileGrid.Entities.User", "DeputyManager")
                         .WithMany()
                         .HasForeignKey("DeputyManagerId")
@@ -711,10 +719,10 @@ namespace FileGrid.Migrations
                         .HasForeignKey("ProductionLeaderId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("FileGrid.Entities.ProjectGroup", "ProjectGroup")
+                    b.HasOne("FileGrid.Entities.Department", "ProjectGroup")
                         .WithMany()
                         .HasForeignKey("ProjectGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("FileGrid.Entities.User", "SafetyLeader")
@@ -893,6 +901,25 @@ namespace FileGrid.Migrations
                     b.Navigation("Department");
                 });
 
+            modelBuilder.Entity("FileGrid.Entities.UserDepartment", b =>
+                {
+                    b.HasOne("FileGrid.Entities.Department", "Department")
+                        .WithMany("UserDepartments")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FileGrid.Entities.User", "User")
+                        .WithMany("UserDepartments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FileGrid.Entities.UserPermission", b =>
                 {
                     b.HasOne("FileGrid.Entities.Permission", "Permission")
@@ -933,8 +960,8 @@ namespace FileGrid.Migrations
 
             modelBuilder.Entity("FileGrid.Entities.UserProjectGroup", b =>
                 {
-                    b.HasOne("FileGrid.Entities.ProjectGroup", "Group")
-                        .WithMany("UserProjectGroups")
+                    b.HasOne("FileGrid.Entities.Department", "ProjectGroup")
+                        .WithMany("AccessibleUsers")
                         .HasForeignKey("ProjectGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -945,7 +972,7 @@ namespace FileGrid.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Group");
+                    b.Navigation("ProjectGroup");
 
                     b.Navigation("User");
                 });
@@ -995,6 +1022,15 @@ namespace FileGrid.Migrations
                     b.Navigation("Users");
                 });
 
+            modelBuilder.Entity("FileGrid.Entities.Department", b =>
+                {
+                    b.Navigation("AccessibleUsers");
+
+                    b.Navigation("Projects");
+
+                    b.Navigation("UserDepartments");
+                });
+
             modelBuilder.Entity("FileGrid.Entities.Permission", b =>
                 {
                     b.Navigation("UserPermissions");
@@ -1007,11 +1043,6 @@ namespace FileGrid.Migrations
                     b.Navigation("Outsources");
 
                     b.Navigation("Resource");
-                });
-
-            modelBuilder.Entity("FileGrid.Entities.ProjectGroup", b =>
-                {
-                    b.Navigation("UserProjectGroups");
                 });
 
             modelBuilder.Entity("FileGrid.Entities.ProjectResource", b =>
@@ -1047,6 +1078,8 @@ namespace FileGrid.Migrations
                     b.Navigation("Shares");
 
                     b.Navigation("UploadedResources");
+
+                    b.Navigation("UserDepartments");
 
                     b.Navigation("UserPermissions");
 
