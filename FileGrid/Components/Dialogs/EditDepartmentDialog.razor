@@ -7,8 +7,11 @@
             <MudTextField @bind-Value="Department.Name" Label="部门" Required="true" />
             <MudTextField @bind-Value="Department.Description" Label="描述" />
         </MudForm>
+        @if(CompanyId == 1){
         <MudSwitch Immediate="true" T="bool" ValueChanged="@(newValue=>OnProjectGroupChanged(newValue))" Color="Color.Primary"
             Label="是否为项目组" />
+        }
+        
     </DialogContent>
     <DialogActions>
         <MudButton Variant="Variant.Text" OnClick="Cancel">取消</MudButton>
