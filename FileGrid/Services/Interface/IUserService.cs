@@ -11,4 +11,7 @@ public interface IUserService
     Task<User?> UpdateUserAsync(User user);
     Task<List<User>> GetUsersByCompanyIdAsync(int companyId);
     Task EnsureUserProjectGroupAsync(Guid userId, int projectGroupId);
+    Task<List<User>> GetCCTEGEmployeesAsync();
+    Task<List<User>> GetCCTEGEmployeeByNameAsync(string userName);
+
 }

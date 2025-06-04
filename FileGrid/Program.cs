@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using FileGrid.Utils.Enum;
 using FileGrid.Services.Interface;
 using FileGrid.Services;
+using FileGrid.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +56,7 @@ builder.Services.AddScoped<IInvitationCodeService, InvitationCodeService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IClipboardService, ClipboardService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
 
 // builder.Services.Configure<CookiePolicyOptions>(options =>
 //             {

@@ -1,5 +1,6 @@
 using FileGrid.Entities;
 using FileGrid.Services.Interface;
+using FileGrid.Utils.Enum;
 using Microsoft.EntityFrameworkCore;
 
 namespace FileGrid.Services;
@@ -70,4 +71,21 @@ public class UserService(FileGridContext context) : IUserService
         }
     }
 
+    public async Task<List<User>> GetCCTEGEmployeesAsync()
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Include(u => u.Company)
+            .Where(u => u.Company != null && u.Company.Type == CompanyType.CCTEG)
+            .ToListAsync();
+    }
+
+    public async Task<List<User>> GetCCTEGEmployeeByNameAsync(string name)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Include(u => u.Company)
+            .Where(u => u.Company != null && u.Company.Type == CompanyType.CCTEG && u.Name == name)
+            .ToListAsync();
+    }
 }

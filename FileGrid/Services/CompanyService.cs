@@ -1,6 +1,7 @@
 using System;
 using FileGrid.Entities;
 using FileGrid.Services.Interface;
+using FileGrid.Utils.Enum;
 using Microsoft.EntityFrameworkCore;
 
 namespace FileGrid.Services;
@@ -8,6 +9,7 @@ namespace FileGrid.Services;
 public class CompanyService(FileGridContext context) : ICompanyService
 {
     private readonly FileGridContext _context = context;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
     public async Task<Company?> AddCompanyAsync(Company company)
     {
         var entry = await _context.Companies.AddAsync(company);
@@ -37,13 +39,64 @@ public class CompanyService(FileGridContext context) : ICompanyService
 
     public async Task<List<Company>> GetAllCompaniesAsync()
     {
-        return await _context.Companies.Include(x => x.Departments)
+        return await _context.Companies.AsNoTracking().Include(x => x.Departments)
         .OrderBy(x => x.Name).ToListAsync();
     }
 
+    public async Task<List<Company>> GetPartAsByNameAsync(string name)
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            return await _context.Companies.AsNoTracking()
+                                 .Where(x => x.Type == CompanyType.PartA && EF.Functions.Like(x.Name, $"%{name}%"))
+                                 .OrderBy(x => x.Name).ToListAsync();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public async Task<List<Company>> GetOutSourcesByNameAsync(string name)
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            return await _context.Companies.AsNoTracking()
+        .Where(x => x.Type == CompanyType.Outsource && EF.Functions.Like(x.Name, $"%{name}%"))
+        .OrderBy(x => x.Name).ToListAsync();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+
+    public async Task<List<Company>> GetAllPartACompaniesAsync()
+    {
+        return await _context.Companies.AsNoTracking().Where(x => x.Type == CompanyType.PartA)
+        .OrderBy(x => x.Name).ToListAsync();
+    }
+
+    public async Task<List<Company>> GetAllOutSourceCompaniesAsync()
+    {
+        return await _context.Companies.AsNoTracking().Where(x => x.Type == CompanyType.Outsource)
+        .OrderBy(x => x.Name).ToListAsync();
+    }
+
+
+    public async Task<List<Company>> GetAllCCTEGCompaniesAsync()
+    {
+        return await _context.Companies.AsNoTracking().Where(x => x.Type == CompanyType.CCTEG)
+        .OrderBy(x => x.Name).ToListAsync();
+    }
+
+
     public async Task<List<Department>> GetAllDepartmentsAsync()
     {
-        return await _context.Departments.ToListAsync();
+        return await _context.Departments.AsNoTracking().ToListAsync();
     }
 
     public async Task<List<Department>> GetDepartmentsByCompanyIdAsync(int companyId)
@@ -56,7 +109,7 @@ public class CompanyService(FileGridContext context) : ICompanyService
 
     public async Task<bool> ExistsByNameAsync(string name)
     {
-        return await _context.Companies.AnyAsync(x => x.Name == name);
+        return await _context.Companies.AsNoTracking().AnyAsync(x => x.Name == name);
     }
 
     public async Task<Department?> UpdateDepartmentAsync(Department dep)
@@ -67,7 +120,6 @@ public class CompanyService(FileGridContext context) : ICompanyService
             .SetProperty(d => d.Name, dep.Name)
             .SetProperty(d => d.Description, dep.Description)
         );
-
         return affected > 0 ? dep : null;
     }
 
@@ -85,7 +137,6 @@ public class CompanyService(FileGridContext context) : ICompanyService
             .SetProperty(u => u.Email, user.Email)
             .SetProperty(u => u.JobTitle, user.JobTitle)
         );
-
         return affected > 0 ? user : null;
     }
 

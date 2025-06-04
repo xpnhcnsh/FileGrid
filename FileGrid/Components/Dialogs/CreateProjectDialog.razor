@@ -1,0 +1,91 @@
+﻿@using FileGrid.Entities
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_model.Name" Label="项目名称" Required />
+            <MudTextField @bind-Value="_model.Description" Label="项目描述" Lines="3" />
+
+            <MudAutocomplete T="Company" Label="甲方公司" ToStringFunc="c => c?.Name" SearchFunc="SearchPartAs"
+                @bind-Value="_selectedPartA" Required />
+
+            <MudAutocomplete T="Company" Label="外协公司" ToStringFunc="c => c?.Name" SearchFunc="SearchOutSources"
+                @bind-SelectedValues="_selectedOutsourceCompanies" MultiSelection="true" />
+
+            <MudAutocomplete T="User" Label="项目经理" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
+                @bind-Value="_selectedManager" />
+
+            <MudAutocomplete T="User" Label="技术负责人" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
+                @bind-Value="_selectedTechnical" />
+
+            <MudAutocomplete T="User" Label="施工负责人" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
+                @bind-Value="_selectedProduction" />
+
+            <MudAutocomplete T="User" Label="安全负责人" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
+                @bind-Value="_selectedSafety" />
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Default">取消</MudButton>
+        <MudButton OnClick="Save" Color="Color.Primary" Variant="Variant.Filled">保存</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private MudForm _form;
+    private ProjectCreateModel _model = new();
+    private Company? _selectedPartA;
+    private HashSet<Company> _selectedOutsourceCompanies = [];
+    private User? _selectedManager;
+    private User? _selectedTechnical;
+    private User? _selectedProduction;
+    private User? _selectedSafety;
+
+    [Parameter]
+    public Func<string, CancellationToken, Task<IEnumerable<Company>>> SearchPartAs { get; set; } = default!;
+    [Parameter]
+    public Func<string, CancellationToken, Task<IEnumerable<Company>>> SearchOutSources { get; set; } = default!;
+    [Parameter]
+    public Func<string, CancellationToken, Task<IEnumerable<User>>> SearchCCTEGEmployees { get; set; } = default!;
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Save()
+    {
+        await _form.Validate();
+
+        if (_form.IsValid)
+        {
+            _model.PartAId = _selectedPartA?.Id;
+            _model.OutsourceIds = _selectedOutsourceCompanies.Select(c => c.Id).ToList();
+            _model.ManagerId = _selectedManager?.Id;
+            _model.TechnicalLeaderId = _selectedTechnical?.Id;
+            _model.ProductionLeaderId = _selectedProduction?.Id;
+            _model.SafetyLeaderId = _selectedSafety?.Id;
+
+            MudDialog.Close(DialogResult.Ok(_model));
+        }
+    }
+
+    public class ProjectCreateModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int ProjectGroupId { get; set; }
+        public int? PartAId { get; set; }
+        public List<int> OutsourceIds { get; set; } = [];
+        public Guid? ManagerId { get; set; }
+        public Guid? TechnicalLeaderId { get; set; }
+        public Guid? ProductionLeaderId { get; set; }
+        public Guid? SafetyLeaderId { get; set; }
+    }
+}
