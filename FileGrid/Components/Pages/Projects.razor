@@ -1,4 +1,5 @@
 ﻿@page "/projects"
+@attribute [Authorize]
 @using FileGrid.Components.Dialogs
 @using FileGrid.Entities
 @using FileGrid.Services.Interface
@@ -119,6 +120,7 @@
         }
         return await CompanyService.GetPartAsByNameAsync(partAname);
     }
+
     private async Task<IEnumerable<Company>> SearchOutSourcesWrapper(string outSourceName, CancellationToken _)
     {
         if (string.IsNullOrWhiteSpace(outSourceName))

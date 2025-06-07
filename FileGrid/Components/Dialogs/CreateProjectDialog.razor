@@ -12,13 +12,13 @@
             <MudTextField @bind-Value="_newProject.Name" Label="项目名称" Required />
             <MudTextField @bind-Value="_newProject.Description" Label="项目描述" Lines="3" />
             <MudAutocomplete T="Department" Label="项目组" ToStringFunc="c => c?.Name" SearchFunc="SearchProjectGroups"
-                @bind-Value="_selectedProjectGroup" Required />
+                @bind-Value="_selectedProjectGroup" Required Clearable="true" />
 
             <MudAutocomplete T="Company" Label="甲方公司" ToStringFunc="c => c?.Name" SearchFunc="SearchPartAs"
-                @bind-Value="_selectedPartA" Required />
+                @bind-Value="_selectedPartA" Required Clearable="true" />
 
             <MudSelect T="Company" Label="外协公司" @bind-SelectedValues="_selectedOutsourceCompanies" MultiSelection="true"
-                Dense="true" ToStringFunc="c => c?.Name">
+                Dense="true" ToStringFunc="c => c?.Name" Clearable="true">
                 @foreach (var company in _outSourceList)
                 {
                     <MudSelectItem Value="@company">@company.Name</MudSelectItem>
@@ -26,16 +26,16 @@
             </MudSelect>
 
             <MudAutocomplete T="User" Label="项目经理" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
-                @bind-Value="_selectedManager" />
+                @bind-Value="_selectedManager" Required Clearable="true" />
 
             <MudAutocomplete T="User" Label="技术负责人" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
-                @bind-Value="_selectedTechnical" />
+                @bind-Value="_selectedTechnical" Required Clearable="true" />
 
             <MudAutocomplete T="User" Label="施工负责人" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
-                @bind-Value="_selectedProduction" />
+                @bind-Value="_selectedProduction" Required Clearable="true" />
 
             <MudAutocomplete T="User" Label="安全负责人" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
-                @bind-Value="_selectedSafety" />
+                @bind-Value="_selectedSafety" Required Clearable="true" />
         </MudForm>
     </DialogContent>
 
@@ -86,6 +86,20 @@
             _newProject.TechnicalLeaderId = _selectedTechnical?.Id;
             _newProject.ProductionLeaderId = _selectedProduction?.Id;
             _newProject.SafetyLeaderId = _selectedSafety?.Id;
+
+            var ids = new List<Guid?>
+{
+_selectedManager?.Id,
+_selectedTechnical?.Id,
+_selectedProduction?.Id,
+_selectedSafety?.Id
+};
+
+            if (ids.GroupBy(x => x).Any(g => g.Count() > 1))
+            {
+                Snackbar.Add("项目经理与各负责人不能重复", Severity.Error);
+                return;
+            }
             var outsourceIds = _selectedOutsourceCompanies.Select(c => c.Id);
             bool res = await ProjectService.AddProjectAsync(_newProject, outsourceIds);
             if (!res)
