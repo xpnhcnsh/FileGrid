@@ -1,5 +1,6 @@
 using FileGrid.Entities;
 using FileGrid.Services.Interface;
+using FileGrid.Utils;
 using FileGrid.Utils.Enum;
 using Microsoft.EntityFrameworkCore;
 
@@ -75,8 +76,12 @@ public class UserService(FileGridContext context) : IUserService
     {
         return await _context.Users
             .AsNoTracking()
-            .Include(u => u.Company)
-            .Where(u => u.Company != null && u.Company.Type == CompanyType.CCTEG)
+            .Include(u => u.UserRoles)
+            .Where(u => u.UserGroup == UserGroup.CCTEGL0 ||
+                        u.UserGroup == UserGroup.CCTEGL1 ||
+                        u.UserGroup == UserGroup.CCTEGL2 ||
+                        u.UserGroup == UserGroup.CCTEGL3 ||
+                        u.UserGroup == UserGroup.CCTEGL4)
             .ToListAsync();
     }
 

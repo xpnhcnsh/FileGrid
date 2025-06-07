@@ -31,6 +31,13 @@ public class CompanyService(FileGridContext context) : ICompanyService
         return affected > 0 ? dep : null;
     }
 
+    public async Task<List<Department>> GetAllProjectGroupsAsync()
+    {
+        return await _context.Departments.AsNoTracking()
+            .Where(x => x.IsProjectGroup == true)
+            .OrderBy(x => x.Name).ToListAsync();
+    }
+
     public async Task<bool> DeleteCompanyByIdAsync(int id)
     {
         var affectedRows = await _context.Companies.Where(x => x.Id == id).ExecuteDeleteAsync();

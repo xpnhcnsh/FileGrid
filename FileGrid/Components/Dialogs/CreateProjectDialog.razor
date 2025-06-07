@@ -1,17 +1,29 @@
 ﻿@using FileGrid.Entities
+@using FileGrid.Services.Interface
 @inject IDialogService DialogService
+@inject ICompanyService CompanyService
+@inject IUserService UserService
+@inject IProjectService ProjectService
+@inject ISnackbar Snackbar
 
 <MudDialog>
     <DialogContent>
         <MudForm @ref="_form">
-            <MudTextField @bind-Value="_model.Name" Label="项目名称" Required />
-            <MudTextField @bind-Value="_model.Description" Label="项目描述" Lines="3" />
+            <MudTextField @bind-Value="_newProject.Name" Label="项目名称" Required />
+            <MudTextField @bind-Value="_newProject.Description" Label="项目描述" Lines="3" />
+            <MudAutocomplete T="Department" Label="项目组" ToStringFunc="c => c?.Name" SearchFunc="SearchProjectGroups"
+                @bind-Value="_selectedProjectGroup" Required />
 
             <MudAutocomplete T="Company" Label="甲方公司" ToStringFunc="c => c?.Name" SearchFunc="SearchPartAs"
                 @bind-Value="_selectedPartA" Required />
 
-            <MudAutocomplete T="Company" Label="外协公司" ToStringFunc="c => c?.Name" SearchFunc="SearchOutSources"
-                @bind-SelectedValues="_selectedOutsourceCompanies" MultiSelection="true" />
+            <MudSelect T="Company" Label="外协公司" @bind-SelectedValues="_selectedOutsourceCompanies" MultiSelection="true"
+                Dense="true" ToStringFunc="c => c?.Name">
+                @foreach (var company in _outSourceList)
+                {
+                    <MudSelectItem Value="@company">@company.Name</MudSelectItem>
+                }
+            </MudSelect>
 
             <MudAutocomplete T="User" Label="项目经理" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
                 @bind-Value="_selectedManager" />
@@ -38,22 +50,25 @@
     IMudDialogInstance MudDialog { get; set; } = default!;
 
     private MudForm _form;
-    private ProjectCreateModel _model = new();
+    private Project _newProject = new();
     private Company? _selectedPartA;
-    private HashSet<Company> _selectedOutsourceCompanies = [];
+    private Department? _selectedProjectGroup;
+    private IEnumerable<Company> _selectedOutsourceCompanies = new HashSet<Company> { };
     private User? _selectedManager;
     private User? _selectedTechnical;
     private User? _selectedProduction;
     private User? _selectedSafety;
+    private List<Company> _partAList = [];
+    private List<Company> _outSourceList = [];
+    private List<User> _cctegEmployeeList = [];
+    private List<Department> _ProjectGroupList = [];
 
-    [Parameter]
-    public Func<string, CancellationToken, Task<IEnumerable<Company>>> SearchPartAs { get; set; } = default!;
-    [Parameter]
-    public Func<string, CancellationToken, Task<IEnumerable<Company>>> SearchOutSources { get; set; } = default!;
-    [Parameter]
-    public Func<string, CancellationToken, Task<IEnumerable<User>>> SearchCCTEGEmployees { get; set; } = default!;
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        _partAList = await CompanyService.GetAllPartACompaniesAsync();
+        _outSourceList = await CompanyService.GetAllOutSourceCompaniesAsync();
+        _cctegEmployeeList = await UserService.GetCCTEGEmployeesAsync();
+        _ProjectGroupList = await CompanyService.GetAllProjectGroupsAsync();
         base.OnInitialized();
     }
 
@@ -65,27 +80,55 @@
 
         if (_form.IsValid)
         {
-            _model.PartAId = _selectedPartA?.Id;
-            _model.OutsourceIds = _selectedOutsourceCompanies.Select(c => c.Id).ToList();
-            _model.ManagerId = _selectedManager?.Id;
-            _model.TechnicalLeaderId = _selectedTechnical?.Id;
-            _model.ProductionLeaderId = _selectedProduction?.Id;
-            _model.SafetyLeaderId = _selectedSafety?.Id;
-
-            MudDialog.Close(DialogResult.Ok(_model));
+            _newProject.PartAId = _selectedPartA?.Id;
+            _newProject.ProjectGroupId = _selectedProjectGroup?.Id ?? 0;
+            _newProject.ManagerId = _selectedManager?.Id;
+            _newProject.TechnicalLeaderId = _selectedTechnical?.Id;
+            _newProject.ProductionLeaderId = _selectedProduction?.Id;
+            _newProject.SafetyLeaderId = _selectedSafety?.Id;
+            var outsourceIds = _selectedOutsourceCompanies.Select(c => c.Id);
+            bool res = await ProjectService.AddProjectAsync(_newProject, outsourceIds);
+            if (!res)
+            {
+                Snackbar.Add("添加项目失败", Severity.Error);
+                return;
+            }
+            MudDialog.Close(DialogResult.Ok(res));
         }
     }
 
-    public class ProjectCreateModel
+    private Task<IEnumerable<Company>> SearchPartAs(string value, CancellationToken cancellationToken)
     {
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int ProjectGroupId { get; set; }
-        public int? PartAId { get; set; }
-        public List<int> OutsourceIds { get; set; } = [];
-        public Guid? ManagerId { get; set; }
-        public Guid? TechnicalLeaderId { get; set; }
-        public Guid? ProductionLeaderId { get; set; }
-        public Guid? SafetyLeaderId { get; set; }
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(_partAList.AsEnumerable());
+
+        var res = _partAList.Where(c => c.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(res.AsEnumerable());
+    }
+    private Task<IEnumerable<Department>> SearchProjectGroups(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(_ProjectGroupList.AsEnumerable());
+
+        var res = _ProjectGroupList.Where(c => c.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(res.AsEnumerable());
+    }
+
+    private Task<IEnumerable<Company>> SearchOutSources(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(_outSourceList.AsEnumerable());
+
+        var res = _outSourceList.Where(c => c.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(res.AsEnumerable());
+    }
+
+    private Task<IEnumerable<User>> SearchCCTEGEmployees(string value, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult(_cctegEmployeeList.AsEnumerable());
+
+        var res = _cctegEmployeeList.Where(u => u.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(res.AsEnumerable());
     }
 }

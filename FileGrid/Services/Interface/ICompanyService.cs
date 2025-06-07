@@ -9,6 +9,7 @@ public interface ICompanyService
     Task<Company?> AddCompanyAsync(Company company);
     Task<bool> DeleteCompanyByIdAsync(int id);
     Task<List<Department>> GetAllDepartmentsAsync();
+    Task<List<Department>> GetAllProjectGroupsAsync();
     Task<List<Company>> GetAllPartACompaniesAsync();
     Task<List<Company>> GetPartAsByNameAsync(string name);
     Task<List<Company>> GetOutSourcesByNameAsync(string name);

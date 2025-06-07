@@ -7,6 +7,7 @@
 @inject IProjectService ProjectService
 @inject ICompanyService CompanyService
 @inject IUserService UserService
+@inject ISnackbar Snackbar
 
 <MudPaper Class="p-4">
     <MudTabs @bind-ActivePanelIndex="_activeTabIndex">
@@ -92,17 +93,13 @@
 
     private async Task OpenCreateProjectDialog()
     {
-        var parameters = new DialogParameters
-        {
-            ["SearchPartAs"] = new Func<string, CancellationToken, Task<IEnumerable<Company>>>(SearchPartAsWrapper),
-            ["SearchOutSources"] = new Func<string, CancellationToken, Task<IEnumerable<Company>>>(SearchOutSourcesWrapper),
-            ["SearchCCTEGEmployees"] = new Func<string, CancellationToken, Task<IEnumerable<User>>>(SearchCCTEGEmployeesWrapper)
-        };
+        var parameters = new DialogParameters { };
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
         var dialog = await DialogService.ShowAsync<CreateProjectDialog>("新建项目", parameters, options);
         var result = await dialog.Result;
-        if (!result.Canceled)
+        if (!result.Canceled && (bool)result.Data == true)
         {
+            Snackbar.Add("添加项目成功", Severity.Success);
             _projects = await ProjectService.GetAllProjectsAsync();
         }
     }
