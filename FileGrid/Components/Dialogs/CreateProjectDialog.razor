@@ -1,5 +1,7 @@
 ﻿@using FileGrid.Entities
 @using FileGrid.Services.Interface
+@using FileGrid.Utils.Class
+@using FileGrid.Utils.Enum
 @inject IDialogService DialogService
 @inject ICompanyService CompanyService
 @inject IUserService UserService
@@ -18,7 +20,7 @@
                 @bind-Value="_selectedPartA" Required Clearable="true" />
 
             <MudSelect T="Company" Label="外协公司" @bind-SelectedValues="_selectedOutsourceCompanies" MultiSelection="true"
-                Dense="true" ToStringFunc="c => c?.Name" Clearable="true">
+                Dense="true" ToStringFunc="c => c?.Name" Required Clearable="true">
                 @foreach (var company in _outSourceList)
                 {
                     <MudSelectItem Value="@company">@company.Name</MudSelectItem>
@@ -28,13 +30,16 @@
             <MudAutocomplete T="User" Label="项目经理" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
                 @bind-Value="_selectedManager" Required Clearable="true" />
 
-            <MudAutocomplete T="User" Label="技术负责人" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
+            <MudAutocomplete T="User" Label="项目副经理" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
+                @bind-Value="_selectedDeputyManager" Clearable="true" />
+
+            <MudAutocomplete T="User" Label="技术负责" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
                 @bind-Value="_selectedTechnical" Required Clearable="true" />
 
-            <MudAutocomplete T="User" Label="施工负责人" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
+            <MudAutocomplete T="User" Label="生产负责" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
                 @bind-Value="_selectedProduction" Required Clearable="true" />
 
-            <MudAutocomplete T="User" Label="安全负责人" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
+            <MudAutocomplete T="User" Label="安全负责" ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees"
                 @bind-Value="_selectedSafety" Required Clearable="true" />
         </MudForm>
     </DialogContent>
@@ -55,6 +60,7 @@
     private Department? _selectedProjectGroup;
     private IEnumerable<Company> _selectedOutsourceCompanies = new HashSet<Company> { };
     private User? _selectedManager;
+    private User? _selectedDeputyManager;
     private User? _selectedTechnical;
     private User? _selectedProduction;
     private User? _selectedSafety;
@@ -83,28 +89,28 @@
             _newProject.PartAId = _selectedPartA?.Id;
             _newProject.ProjectGroupId = _selectedProjectGroup?.Id ?? 0;
             _newProject.ManagerId = _selectedManager?.Id;
+            _newProject.DeputyManagerId = _selectedDeputyManager?.Id;
             _newProject.TechnicalLeaderId = _selectedTechnical?.Id;
             _newProject.ProductionLeaderId = _selectedProduction?.Id;
             _newProject.SafetyLeaderId = _selectedSafety?.Id;
-
-            var ids = new List<Guid?>
-{
-_selectedManager?.Id,
-_selectedTechnical?.Id,
-_selectedProduction?.Id,
-_selectedSafety?.Id
-};
-
-            if (ids.GroupBy(x => x).Any(g => g.Count() > 1))
+            var outsourceIds = _selectedOutsourceCompanies.Select(c => c.Id);
+            _newProject.Outsources = outsourceIds.Select(id => new ProjectOutsource
             {
-                Snackbar.Add("项目经理与各负责人不能重复", Severity.Error);
+                ProjectId = _newProject.Id,
+                OutsourceId = id
+            }).ToList();
+
+            var errorCode = ProjectService.ValidateAProject(_newProject);
+            if (errorCode != ErrorCode.None)
+            {
+                Snackbar.Add(ErrorCodeHelper.GetErrorMessage(errorCode), Severity.Error);
                 return;
             }
-            var outsourceIds = _selectedOutsourceCompanies.Select(c => c.Id);
-            bool res = await ProjectService.AddProjectAsync(_newProject, outsourceIds);
+
+            bool res = await ProjectService.AddProjectAsync(_newProject);
             if (!res)
             {
-                Snackbar.Add("添加项目失败", Severity.Error);
+                Snackbar.Add("网络或服务器原因添加项目失败", Severity.Error);
                 return;
             }
             MudDialog.Close(DialogResult.Ok(res));

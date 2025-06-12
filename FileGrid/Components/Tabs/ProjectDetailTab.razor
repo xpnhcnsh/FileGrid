@@ -1,0 +1,242 @@
+﻿@using FileGrid.Utils.Class
+@using FileGrid.Utils.Enum
+@using MudBlazor
+@using FileGrid.Entities
+@using FileGrid.Services.Interface
+@inject IProjectService ProjectService
+@inject ISnackbar Snackbar
+@inject ICompanyService CompanyService
+@inject IUserService UserService
+@inject ICompanyService DepartmentService
+
+<MudPaper Class="p-6">
+    <MudStack Spacing="4">
+
+        <!-- 标题栏 -->
+        <MudStack Direction="Row" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+            @if (_isEditing)
+            {
+                <MudTextField @bind-Value="_editableProject.Name" Label="项目名称" Required Class="w-64" />
+            }
+            else
+            {
+                <MudText Typo="Typo.h5">@Project.Name</MudText>
+            }
+
+            <MudStack Direction="Row" Spacing="1">
+                <MudIconButton Icon="@(_isEditing? Icons.Material.Filled.Close : Icons.Material.Filled.Edit)"
+                    Color="Color.Primary" OnClick="ToggleEdit" />
+                @if (_isEditing)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success" OnClick="UpdateProject" />
+                }
+            </MudStack>
+        </MudStack>
+
+        <!-- 项目介绍 -->
+        <MudPaper Elevation="1" Class="p-4">
+            <MudText Typo="Typo.h6">项目介绍</MudText>
+            @if (_isEditing)
+            {
+                <MudTextField @bind-Value="_editableProject.Description" Label="项目描述" Lines="2" />
+            }
+            else
+            {
+                <MudText>项目描述：@Project.Description</MudText>
+            }
+        </MudPaper>
+
+        <!-- 人员组织 -->
+        <MudPaper Elevation="1" Class="p-4">
+            <MudText Typo="Typo.h6">人员组织</MudText>
+            @if (_isEditing)
+            {
+                <MudAutocomplete T="User" Label="项目经理" @bind-Value="_editableProject.Manager" ToStringFunc="u => u?.Name"
+                    SearchFunc="SearchCCTEGEmployees" Clearable />
+                <MudAutocomplete T="User" Label="项目副经理" @bind-Value="_editableProject.DeputyManager"
+                    ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Clearable />
+                <MudAutocomplete T="User" Label="技术负责" @bind-Value="_editableProject.TechnicalLeader"
+                    ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Clearable />
+                <MudAutocomplete T="User" Label="生产负责" @bind-Value="_editableProject.ProductionLeader"
+                    ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Clearable />
+                <MudAutocomplete T="User" Label="安全负责" @bind-Value="_editableProject.SafetyLeader"
+                    ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Clearable />
+            }
+            else
+            {
+                <MudText>项目经理：@Project.Manager?.Name</MudText>
+                <MudText>项目副经理：@Project.DeputyManager?.Name</MudText>
+                <MudText>技术负责：@Project.TechnicalLeader?.Name</MudText>
+                <MudText>生产负责：@Project.ProductionLeader?.Name</MudText>
+                <MudText>安全负责：@Project.SafetyLeader?.Name</MudText>
+            }
+        </MudPaper>
+
+        <!-- 合作单位 -->
+        <MudPaper Elevation="1" Class="p-4">
+            <MudText Typo="Typo.h6">合作单位</MudText>
+            @if (_isEditing)
+            {
+                <MudAutocomplete T="Department" Label="项目组" @bind-Value="_editableProject.ProjectGroup"
+                    ToStringFunc="c => c?.Name" SearchFunc="SearchProjectGroups" Clearable />
+                <MudAutocomplete T="Company" Label="甲方公司" @bind-Value="_editableProject.PartA" ToStringFunc="c => c?.Name"
+                    SearchFunc="SearchPartAs" Clearable />
+                <MudSelect T="Company" Label="外协公司" 
+                           SelectedValues="_selectedOutsourceCompanies" 
+                           SelectedValuesChanged="OnOutsourceCompaniesChanged"
+                           MultiSelection="true" Dense="true" Clearable="true"
+                           ToStringFunc="@(c => c?.Name)">
+                    @foreach (var company in _outsourceCompanyList)
+                    {
+                        <MudSelectItem Value="@company">@company.Name</MudSelectItem>
+                    }
+                </MudSelect>
+
+            }
+            else
+            {
+                <MudText>项目组：@Project.ProjectGroup?.Name</MudText>
+                <MudText>甲方公司：@Project.PartA?.Name</MudText>
+                <MudText>外协公司：</MudText>
+                @foreach (var item in Project.Outsources)
+                {
+                    <MudText>- @item.Outsource.Name</MudText>
+                }
+            }
+        </MudPaper>
+    </MudStack>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public Project? Project { get; set; } = default!;
+
+    private Project _editableProject = new();
+    private bool _isEditing = false;
+    private MudForm _form;
+    private List<Company> _partAList = [];
+    private List<Company> _outsourceCompanyList = [];
+    // 使用 Company 对象进行绑定
+    private HashSet<Company> _selectedOutsourceCompanies = new();
+    private List<Company> _selectedOutsourceCompaniesDisplay = new();
+
+    private List<User> _employeeList = [];
+    private List<Department> _projectGroupList = [];
+    private Dictionary<int, string> _companyIdToNameMap = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _partAList = await CompanyService.GetAllPartACompaniesAsync();
+        _outsourceCompanyList = await CompanyService.GetAllOutSourceCompaniesAsync();
+        _employeeList = await UserService.GetCCTEGEmployeesAsync();
+        _projectGroupList = await DepartmentService.GetAllProjectGroupsAsync();
+        
+        // 创建ID到名称的映射字典
+        _companyIdToNameMap = _outsourceCompanyList.ToDictionary(c => c.Id, c => c.Name);
+        
+        // 初始化选中的外协公司
+        var selectedIds = Project.Outsources.Select(po => po.OutsourceId).ToHashSet();
+        _selectedOutsourceCompanies = _outsourceCompanyList.Where(c => selectedIds.Contains(c.Id)).ToHashSet();
+
+        CopyProject();
+    }
+
+    private void ToggleEdit()
+    {
+        if (_isEditing)
+            CopyProject(); // 恢复
+
+        _isEditing = !_isEditing;
+    }
+
+    private void CopyProject()
+    {
+        _editableProject = new Project
+        {
+            Id = Project.Id,
+            Name = Project.Name,
+            Description = Project.Description,
+            ProjectGroup = Project.ProjectGroup,
+            PartA = Project.PartA,
+            Manager = Project.Manager,
+            DeputyManager = Project.DeputyManager,
+            TechnicalLeader = Project.TechnicalLeader,
+            ProductionLeader = Project.ProductionLeader,
+            SafetyLeader = Project.SafetyLeader,
+            Outsources = Project.Outsources.Select(po => new ProjectOutsource
+            {
+                ProjectId = po.ProjectId,
+                OutsourceId = po.OutsourceId,
+                Outsource = po.Outsource
+            }).ToList()
+        };
+    }
+
+    private async Task UpdateProject()
+    {
+        Project.Name = _editableProject.Name;
+        Project.Description = _editableProject.Description;
+        Project.ProjectGroupId = _editableProject.ProjectGroup?.Id;
+        Project.PartAId = _editableProject.PartA?.Id;
+        Project.ManagerId = _editableProject.Manager?.Id;
+        Project.DeputyManagerId = _editableProject.DeputyManager?.Id;
+        Project.TechnicalLeaderId = _editableProject.TechnicalLeader?.Id;
+        Project.ProductionLeaderId = _editableProject.ProductionLeader?.Id;
+        Project.SafetyLeaderId = _editableProject.SafetyLeader?.Id;
+        Project.Outsources = _selectedOutsourceCompanies
+            .Select(c => new ProjectOutsource
+            {
+                ProjectId = Project.Id,
+                OutsourceId = c.Id,
+            }).ToList();
+
+        var errorCode = ProjectService.ValidateAProject(Project);
+        if (errorCode != ErrorCode.None)
+        {
+            Snackbar.Add(ErrorCodeHelper.GetErrorMessage(errorCode), Severity.Error);
+            return;
+        }
+
+        var success = await ProjectService.UpdateProjectAsync(Project);
+
+        if (success)
+        {
+            Snackbar.Add("项目信息已更新", Severity.Success);
+            _isEditing = false;
+
+            Project = await ProjectService.GetProjectByIdAsync(Project.Id);
+            // 重新加载选中的外协公司
+            var newSelectedIds = Project.Outsources.Select(po => po.OutsourceId).ToHashSet();
+            _selectedOutsourceCompanies = _outsourceCompanyList.Where(c => newSelectedIds.Contains(c.Id)).ToHashSet();
+        }
+        else
+        {
+            Snackbar.Add("更新失败", Severity.Error);
+        }
+    }
+
+    private void OnOutsourceCompaniesChanged(IEnumerable<Company> selectedCompanies)
+    {
+        _selectedOutsourceCompanies = selectedCompanies.ToHashSet();
+    }
+
+    private Task<IEnumerable<Company>> SearchPartAs(string value, CancellationToken _) =>
+    Task.FromResult(string.IsNullOrWhiteSpace(value)
+    ? _partAList
+    : _partAList.Where(c => c.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
+
+    private Task<IEnumerable<User>> SearchCCTEGEmployees(string value, CancellationToken _) =>
+    Task.FromResult(string.IsNullOrWhiteSpace(value)
+    ? _employeeList
+    : _employeeList.Where(u => u.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
+
+    private Task<IEnumerable<Department>> SearchProjectGroups(string value, CancellationToken _) =>
+    Task.FromResult(string.IsNullOrWhiteSpace(value)
+    ? _projectGroupList
+    : _projectGroupList.Where(g => g.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
+
+    private Task<IEnumerable<Company>> SearchOutsourceCompanies(string value, CancellationToken _) =>
+    Task.FromResult(string.IsNullOrWhiteSpace(value)
+    ? _outsourceCompanyList
+    : _outsourceCompanyList.Where(c => c.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
+}

@@ -1,8 +1,12 @@
 ﻿@page "/projects"
 @attribute [Authorize]
+
 @using FileGrid.Components.Dialogs
+@using FileGrid.Components.Tabs
 @using FileGrid.Entities
 @using FileGrid.Services.Interface
+@using MudBlazor
+
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
 @inject IProjectService ProjectService
@@ -11,8 +15,10 @@
 @inject ISnackbar Snackbar
 
 <MudPaper Class="p-4">
-    <MudTabs @bind-ActivePanelIndex="_activeTabIndex">
-        <MudTabPanel Text="项目列表">
+    <MudDynamicTabs @ref="_dynamicTabs" KeepPanelsAlive="true" ShowCloseIcon="true"
+        @bind-ActivePanelIndex="_activePanelIndex" CloseTab="OnTabClosed">
+
+        <MudTabPanel Text="项目列表" Icon="@Icons.Material.Filled.ViewList" CanClose="false" ShowCloseIcon="false">
             <MudStack Direction="Row" Class="mb-4 justify-between items-center">
                 <MudTextField @bind-Value="_searchText" Placeholder="搜索项目名称..." Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Filled.Search" Class="w-1/3" />
@@ -23,12 +29,16 @@
             <MudTable Items="_filteredProjects" Hover="true">
                 <HeaderContent>
                     <MudTh>项目名称</MudTh>
+                    <MudTh>项目组</MudTh>
                     <MudTh>项目经理</MudTh>
                     <MudTh>甲方公司</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd>
-                        <MudLink OnClick="() => OpenProjectDetails(context)">@context.Name</MudLink>
+                        <MudLink OnClick="() => OpenProjectTab(context)">@context.Name</MudLink>
+                    </MudTd>
+                    <MudTd>
+                        <MudLink>@context.ProjectGroup?.Name</MudLink>
                     </MudTd>
                     <MudTd>
                         @if (context.Manager is not null)
@@ -46,24 +56,23 @@
             </MudTable>
         </MudTabPanel>
 
-        @foreach (var project in _projectTabs)
+        @foreach (var project in _openProjects)
         {
-            <MudTabPanel Text="@project.Name">
-                <MudStack>
-                    <MudText Typo="Typo.h6">@project.Name</MudText>
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit"
-                        OnClick="() => OpenEditDialog(project)">编辑</MudButton>
-                </MudStack>
+            <MudTabPanel Text="@project.Name" Icon="@Icons.Material.Filled.AlignVerticalTop" CanClose="true">
+                <ProjectDetailTab Project="@project" />
             </MudTabPanel>
         }
-    </MudTabs>
+
+    </MudDynamicTabs>
 </MudPaper>
 
 @code {
     private string _searchText = string.Empty;
     private List<Project> _projects = [];
-    private List<Project> _projectTabs = [];
-    private int _activeTabIndex = 0;
+    private MudDynamicTabs _dynamicTabs;
+    private int _activePanelIndex = 0;
+
+    private List<Project> _openProjects = new();
 
     private IEnumerable<Project> _filteredProjects => _projects
     .Where(p => string.IsNullOrWhiteSpace(_searchText) || p.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase));
@@ -73,13 +82,29 @@
         _projects = await ProjectService.GetAllProjectsAsync();
     }
 
-    private void OpenProjectDetails(Project project)
+    private void OpenProjectTab(Project project)
     {
-        if (!_projectTabs.Contains(project))
+        // 若已存在同名项目 tab，不重复添加，仅切换
+        var existingIndex = _openProjects.FindIndex(p => p.Name == project.Name);
+        if (existingIndex >= 0)
         {
-            _projectTabs.Add(project);
+            _activePanelIndex = existingIndex + 1; // +1 是因为第一个 tab 是项目列表
+            return;
         }
-        _activeTabIndex = _projectTabs.IndexOf(project) + 1;
+
+        _openProjects.Add(project);
+        _activePanelIndex = _openProjects.Count;
+    }
+
+    private void OnTabClosed(MudTabPanel closedTab)
+    {
+        var closedName = closedTab.Text;
+        var index = _openProjects.FindIndex(p => p.Name == closedName);
+        if (index >= 0)
+        {
+            _openProjects.RemoveAt(index);
+        }
+        _activePanelIndex = 0;
     }
 
     private async Task ShowUserInfo(User user)
@@ -94,48 +119,15 @@
 
     private async Task OpenCreateProjectDialog()
     {
-        var parameters = new DialogParameters { };
+        var parameters = new DialogParameters();
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
         var dialog = await DialogService.ShowAsync<CreateProjectDialog>("新建项目", parameters, options);
         var result = await dialog.Result;
-        if (!result.Canceled && (bool)result.Data == true)
+
+        if (!result.Canceled && result.Data is bool success && success)
         {
             Snackbar.Add("添加项目成功", Severity.Success);
             _projects = await ProjectService.GetAllProjectsAsync();
         }
-    }
-
-    private async Task OpenEditDialog(Project project)
-    {
-        var parameters = new DialogParameters { ["Project"] = project };
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium };
-        await DialogService.ShowMessageBox("编辑功能", "此处为编辑对话框（待实现具体内容）");
-    }
-
-    private async Task<IEnumerable<Company>> SearchPartAsWrapper(string partAname, CancellationToken _)
-    {
-        if (string.IsNullOrWhiteSpace(partAname))
-        {
-            return await CompanyService.GetAllPartACompaniesAsync();
-        }
-        return await CompanyService.GetPartAsByNameAsync(partAname);
-    }
-
-    private async Task<IEnumerable<Company>> SearchOutSourcesWrapper(string outSourceName, CancellationToken _)
-    {
-        if (string.IsNullOrWhiteSpace(outSourceName))
-        {
-            return await CompanyService.GetAllOutSourceCompaniesAsync();
-        }
-        return await CompanyService.GetPartAsByNameAsync(outSourceName);
-    }
-
-    private async Task<IEnumerable<User>> SearchCCTEGEmployeesWrapper(string userName, CancellationToken _)
-    {
-        if (string.IsNullOrWhiteSpace(userName))
-        {
-            return await UserService.GetCCTEGEmployeesAsync();
-        }
-        return await UserService.GetCCTEGEmployeeByNameAsync(userName);
     }
 }

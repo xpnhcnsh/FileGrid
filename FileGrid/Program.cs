@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using FileGrid.Utils.Enum;
 using FileGrid.Services.Interface;
 using FileGrid.Services;
-using FileGrid.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
