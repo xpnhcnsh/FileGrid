@@ -193,3 +193,4 @@
 /Users/xpnhcnsh/Code/FileGrid/FileGrid/bin/Debug/net9.0/MudBlazor.StaticInput.dll
 /Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/weg7obbbjn-lp4d2hvui5.gz
 /Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/2i201q8qhc-0l4q9a86pm.gz
+/Users/xpnhcnsh/Code/FileGrid/FileGrid/obj/Debug/net9.0/compressed/66m95mkgog-aze7fx3r8c.gz

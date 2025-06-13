@@ -1,0 +1,20 @@
+/* 去除MudCard边框和阴影 */
+.no-border {
+    border: none !important;
+}
+
+.no-shadow {
+    box-shadow: none !important;
+}
+
+/* 去除MudCard外边距 */
+.no-margin {
+    margin: 0 !important;
+}
+
+/* 去除MudCard内边距，包括MudCardContent和MudCardActions */
+.no-padding,
+.no-padding>.mud-card-content,
+.no-padding>.mud-card-actions {
+    padding: 0 !important;
+}

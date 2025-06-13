@@ -1,6 +1,10 @@
 {
   "Files": [
     {
+      "Id": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/css/custom.css",
+      "PackagePath": "staticwebassets/css/custom.css"
+    },
+    {
       "Id": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/favicon.ico",
       "PackagePath": "staticwebassets/favicon.ico"
     },

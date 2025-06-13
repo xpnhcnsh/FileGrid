@@ -9,117 +9,247 @@
 @inject IUserService UserService
 @inject ICompanyService DepartmentService
 
-<MudPaper Class="p-6">
-    <MudStack Spacing="4">
-
-        <!-- 标题栏 -->
-        <MudStack Direction="Row" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
-            @if (_isEditing)
+<div class="max-w-4xl mx-auto py-8 px-4">
+    <MudCard Style="box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important;">
+        <!-- 项目标题 -->
+        <MudCardHeader Class="d-flex flex-column flex-sm-row align-center w-full">
+            @if (_isEditingTitle)
             {
-                <MudTextField @bind-Value="_editableProject.Name" Label="项目名称" Required Class="w-64" />
+                <div Class="d-flex items-center space-x-1 flex-shrink-0">
+                    <MudIconButton Icon="@Icons.Material.Filled.Check"
+                                Color="Color.Success"
+                                OnClick="SaveTitle"
+                                Size="Size.Small" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                Color="Color.Error"
+                                OnClick="@(() => CancelEdit("title"))"
+                                Size="Size.Small" />
+                </div>
+                    <MudTextField @bind-Value="_editableProject.Name"
+                                Label="项目名称"
+                                Required="true"
+                                FullWidth="true"
+                                Variant="Variant.Text"
+                                InputType="InputType.Text"
+                                Color="Color.White"/>
             }
             else
             {
-                <MudText Typo="Typo.h5">@Project.Name</MudText>
+                
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                Color="Color.Inherit"
+                                OnClick="@(() => EditSection("title"))"
+                                Class="text-white hover:bg-indigo-700"
+                                Size="Size.Small" />
+                    <MudText Typo="Typo.h4"
+                            Class="font-bold whitespace-nowrap flex-grow">@Project.Name</MudText>
             }
+        </MudCardHeader>
 
-            <MudStack Direction="Row" Spacing="1">
-                <MudIconButton Icon="@(_isEditing? Icons.Material.Filled.Close : Icons.Material.Filled.Edit)"
-                    Color="Color.Primary" OnClick="ToggleEdit" />
-                @if (_isEditing)
-                {
-                    <MudIconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success" OnClick="UpdateProject" />
-                }
-            </MudStack>
-        </MudStack>
-
-        <!-- 项目介绍 -->
-        <MudPaper Elevation="1" Class="p-4">
-            <MudText Typo="Typo.h6">项目介绍</MudText>
-            @if (_isEditing)
-            {
-                <MudTextField @bind-Value="_editableProject.Description" Label="项目描述" Lines="2" />
-            }
-            else
-            {
-                <MudText>项目描述：@Project.Description</MudText>
-            }
-        </MudPaper>
-
-        <!-- 人员组织 -->
-        <MudPaper Elevation="1" Class="p-4">
-            <MudText Typo="Typo.h6">人员组织</MudText>
-            @if (_isEditing)
-            {
-                <MudAutocomplete T="User" Label="项目经理" @bind-Value="_editableProject.Manager" ToStringFunc="u => u?.Name"
-                    SearchFunc="SearchCCTEGEmployees" Clearable />
-                <MudAutocomplete T="User" Label="项目副经理" @bind-Value="_editableProject.DeputyManager"
-                    ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Clearable />
-                <MudAutocomplete T="User" Label="技术负责" @bind-Value="_editableProject.TechnicalLeader"
-                    ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Clearable />
-                <MudAutocomplete T="User" Label="生产负责" @bind-Value="_editableProject.ProductionLeader"
-                    ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Clearable />
-                <MudAutocomplete T="User" Label="安全负责" @bind-Value="_editableProject.SafetyLeader"
-                    ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Clearable />
-            }
-            else
-            {
-                <MudText>项目经理：@Project.Manager?.Name</MudText>
-                <MudText>项目副经理：@Project.DeputyManager?.Name</MudText>
-                <MudText>技术负责：@Project.TechnicalLeader?.Name</MudText>
-                <MudText>生产负责：@Project.ProductionLeader?.Name</MudText>
-                <MudText>安全负责：@Project.SafetyLeader?.Name</MudText>
-            }
-        </MudPaper>
-
-        <!-- 合作单位 -->
-        <MudPaper Elevation="1" Class="p-4">
-            <MudText Typo="Typo.h6">合作单位</MudText>
-            @if (_isEditing)
-            {
-                <MudAutocomplete T="Department" Label="项目组" @bind-Value="_editableProject.ProjectGroup"
-                    ToStringFunc="c => c?.Name" SearchFunc="SearchProjectGroups" Clearable />
-                <MudAutocomplete T="Company" Label="甲方公司" @bind-Value="_editableProject.PartA" ToStringFunc="c => c?.Name"
-                    SearchFunc="SearchPartAs" Clearable />
-                <MudSelect T="Company" Label="外协公司" 
-                           SelectedValues="_selectedOutsourceCompanies" 
-                           SelectedValuesChanged="OnOutsourceCompaniesChanged"
-                           MultiSelection="true" Dense="true" Clearable="true"
-                           ToStringFunc="@(c => c?.Name)">
-                    @foreach (var company in _outsourceCompanyList)
+        <MudCardContent
+            Style="box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important;">
+            <div class="space-y-8 bg-white px-4 py-6"></div>
+            <!-- 项目介绍卡片 -->
+            <MudCard Style="box-shadow: none !important; border: none !important; ">
+                <MudCardHeader Class="d-flex flex-column flex-sm-row align-center"
+                    Style="box-shadow: none !important; border: none !important; ">
+                    <MudText Typo="Typo.h6" Class="font-bold text-gray-800">项目介绍</MudText>
+                    @if (!_isEditingDescription)
                     {
-                        <MudSelectItem Value="@company">@company.Name</MudSelectItem>
+                        <div>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                            OnClick="@(() => EditSection("description"))" Class="text-gray-500 hover:text-indigo-600" />
+                        </div>
                     }
-                </MudSelect>
+                    else
+                    {
+                        <div  class="flex space-x-2">
+                            <MudIconButton Icon="@Icons.Material.Filled.Check" Size="Size.Small" Color="Color.Success"
+                                OnClick="SaveDescription" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Color="Color.Error"
+                                OnClick="@(() => CancelEdit("description"))" />
+                        </div>
+                    }
+                </MudCardHeader>
 
-            }
-            else
-            {
-                <MudText>项目组：@Project.ProjectGroup?.Name</MudText>
-                <MudText>甲方公司：@Project.PartA?.Name</MudText>
-                <MudText>外协公司：</MudText>
-                @foreach (var item in Project.Outsources)
-                {
-                    <MudText>- @item.Outsource.Name</MudText>
-                }
-            }
-        </MudPaper>
-    </MudStack>
-</MudPaper>
+                <MudCardContent
+                    Style="box-shadow: none !important; border: none !important;">
+                    @if (_isEditingDescription)
+                    {
+                        <MudTextField @bind-Value="_editableProject.Description" Label="项目描述" Lines="4" Variant="Variant.Outlined"
+                                    Class="w-full" />
+                    }
+                    else
+                    {
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <MudText Class="text-gray-700 leading-relaxed">
+                                @(string.IsNullOrEmpty(Project.Description) ? "暂无项目描述" : Project.Description)
+                            </MudText>
+                        </div>
+                    }
+                </MudCardContent>
+            </MudCard>
+
+            <MudDivider DividerType="DividerType.Middle" Class="my-6" />
+
+        <!-- 人员组织卡片 -->
+            <MudCard
+                Style="box-shadow: none !important; border: none !important;">
+                <MudCardHeader Class="d-flex flex-column flex-sm-row align-center"
+                    Style="box-shadow: none !important; border: none !important;">
+                        <MudText Typo="Typo.h6" Class="font-bold text-gray-800">人员组织</MudText>
+                        @if (!_isEditingPersonnel)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                        OnClick="@(() => EditSection("personnel"))"
+                                        Class="text-gray-500 hover:text-indigo-600" />
+                        }
+                        else
+                        {
+                            <div class="flex space-x-2">
+                                <MudIconButton Icon="@Icons.Material.Filled.Check" Size="Size.Small" Color="Color.Success"
+                                            OnClick="SavePersonnel" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Color="Color.Error"
+                                            OnClick="@(() => CancelEdit("personnel"))" />
+                            </div>
+                        }
+                </MudCardHeader>
+
+                <MudCardContent
+                    Style="box-shadow: none !important; border: none !important;">
+                    @if (_isEditingPersonnel)
+                    {
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <MudAutocomplete T="User" Label="项目经理" @bind-Value="_editableProject.Manager"
+                                            ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Variant="Variant.Text" Clearable />
+                            <MudAutocomplete T="User" Label="项目副经理" @bind-Value="_editableProject.DeputyManager"
+                                            ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Variant="Variant.Text" Clearable />
+                            <MudAutocomplete T="User" Label="技术负责" @bind-Value="_editableProject.TechnicalLeader"
+                                            ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Variant="Variant.Text" Clearable />
+                            <MudAutocomplete T="User" Label="生产负责" @bind-Value="_editableProject.ProductionLeader"
+                                            ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Variant="Variant.Text" Clearable />
+                            <MudAutocomplete T="User" Label="安全负责" @bind-Value="_editableProject.SafetyLeader"
+                                            ToStringFunc="u => u?.Name" SearchFunc="SearchCCTEGEmployees" Variant="Variant.Text" Clearable />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach (var item in new[] {
+                                ("项目经理", Project.Manager?.Name),
+                                ("项目副经理", Project.DeputyManager?.Name),
+                                ("技术负责", Project.TechnicalLeader?.Name),
+                                ("生产负责", Project.ProductionLeader?.Name),
+                                ("安全负责", Project.SafetyLeader?.Name)
+                            })
+                            {
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <MudText Typo="Typo.subtitle2" Class="font-semibold text-gray-600 mb-2">@item.Item1</MudText>
+                                    <MudText Typo="Typo.body1" Class="font-medium text-gray-800">@((item.Item2 ?? "未设置"))</MudText>
+                                </div>
+                            }
+                        </div>
+                    }
+                </MudCardContent>
+            </MudCard>
+
+            <MudDivider DividerType="DividerType.Middle" Class="my-6" />
+
+        <!-- 合作单位卡片 -->
+            <MudCard
+                Style="box-shadow: none !important; border: none !important;">
+                <MudCardHeader Class="d-flex flex-column flex-sm-row align-center"
+                    Style="box-shadow: none !important; border: none !important; ">
+                    <MudText Typo="Typo.h6" Class="font-bold text-gray-800">合作单位</MudText>
+                            @if (!_isEditingCooperation)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                                            OnClick="@(() => EditSection("cooperation"))"
+                                            Class="text-gray-500 hover:text-indigo-600" />
+                            }
+                            else
+                            {
+                                <div class="flex space-x-2">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Check" Size="Size.Small" Color="Color.Success"
+                                                OnClick="SaveCooperation" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Color="Color.Error"
+                                                OnClick="@(() => CancelEdit("cooperation"))" />
+                                </div>
+                            }
+                </MudCardHeader>
+                <MudCardContent
+                    Style="box-shadow: none !important; border: none !important;">
+                    @if (_isEditingCooperation)
+                    {
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <MudAutocomplete T="Department" Label="项目组" @bind-Value="_editableProject.ProjectGroup"
+                                            ToStringFunc="c => c?.Name" SearchFunc="SearchProjectGroups" Variant="Variant.Text" Clearable />
+                            <MudAutocomplete T="Company" Label="甲方公司" @bind-Value="_editableProject.PartA"
+                                            ToStringFunc="c => c?.Name" SearchFunc="SearchPartAs" Variant="Variant.Text" Clearable />
+                        </div>
+                        <div class="mt-6">
+                            <MudText Typo="Typo.subtitle1" Class="font-semibold text-gray-700 mb-3">外协公司</MudText>
+                            <MudSelect T="Company" SelectedValues="_selectedOutsourceCompanies"
+                                    SelectedValuesChanged="OnOutsourceCompaniesChanged" MultiSelection="true"
+                                    Clearable="true" Variant="Variant.Text" ToStringFunc="@(c => c?.Name)" Class="w-full">
+                                @foreach (var company in _outsourceCompanyList)
+                                {
+                                    <MudSelectItem Value="@company">@company.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <MudText Typo="Typo.subtitle2" Class="font-semibold text-gray-600 mb-2">项目组</MudText>
+                                <MudText Typo="Typo.body1" Class="font-medium text-gray-800">@(Project.ProjectGroup?.Name ?? "未设置")</MudText>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <MudText Typo="Typo.subtitle2" Class="font-semibold text-gray-600 mb-2">甲方公司</MudText>
+                                <MudText Typo="Typo.body1" Class="font-medium text-gray-800">@(Project.PartA?.Name ?? "未设置")</MudText>
+                            </div>
+                        </div>
+                        <div class="mt-6 bg-gray-50 p-4 rounded-lg">
+                            <MudText Typo="Typo.subtitle2" Class="font-semibold text-gray-600 mb-3">外协公司</MudText>
+                            @if (Project.Outsources.Any())
+                            {
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach (var item in Project.Outsources)
+                                    {
+                                        <MudChip T="string" Color="Color.Primary" Size="Size.Medium" Variant="Variant.Filled">
+                                            @item.Outsource.Name
+                                        </MudChip>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <MudText Class="text-gray-500 italic">未设置外协公司</MudText>
+                            }
+                        </div>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudCardContent>
+    </MudCard>
+</div>
+
 
 @code {
     [Parameter]
     public Project? Project { get; set; } = default!;
 
     private Project _editableProject = new();
-    private bool _isEditing = false;
+    private bool _isEditingTitle = false;
+    private bool _isEditingDescription = false;
+    private bool _isEditingPersonnel = false;
+    private bool _isEditingCooperation = false;
     private MudForm _form;
     private List<Company> _partAList = [];
     private List<Company> _outsourceCompanyList = [];
-    // 使用 Company 对象进行绑定
     private HashSet<Company> _selectedOutsourceCompanies = new();
-    private List<Company> _selectedOutsourceCompaniesDisplay = new();
-
     private List<User> _employeeList = [];
     private List<Department> _projectGroupList = [];
     private Dictionary<int, string> _companyIdToNameMap = new();
@@ -130,11 +260,9 @@
         _outsourceCompanyList = await CompanyService.GetAllOutSourceCompaniesAsync();
         _employeeList = await UserService.GetCCTEGEmployeesAsync();
         _projectGroupList = await DepartmentService.GetAllProjectGroupsAsync();
-        
-        // 创建ID到名称的映射字典
+
         _companyIdToNameMap = _outsourceCompanyList.ToDictionary(c => c.Id, c => c.Name);
-        
-        // 初始化选中的外协公司
+
         var selectedIds = Project.Outsources.Select(po => po.OutsourceId).ToHashSet();
         _selectedOutsourceCompanies = _outsourceCompanyList.Where(c => selectedIds.Contains(c.Id)).ToHashSet();
 
@@ -143,10 +271,23 @@
 
     private void ToggleEdit()
     {
-        if (_isEditing)
-            CopyProject(); // 恢复
+        // 全局编辑切换逻辑
+        var anyEditing = _isEditingTitle || _isEditingDescription || _isEditingPersonnel || _isEditingCooperation;
 
-        _isEditing = !_isEditing;
+        if (anyEditing)
+        {
+            CancelEdit("title");
+            CancelEdit("description");
+            CancelEdit("personnel");
+            CancelEdit("cooperation");
+        }
+        else
+        {
+            EditSection("title");
+            EditSection("description");
+            EditSection("personnel");
+            EditSection("cooperation");
+        }
     }
 
     private void CopyProject()
@@ -172,24 +313,100 @@
         };
     }
 
-    private async Task UpdateProject()
+    private void EditSection(string section)
+    {
+        // 退出其他编辑状态
+        _isEditingTitle = false;
+        _isEditingDescription = false;
+        _isEditingPersonnel = false;
+        _isEditingCooperation = false;
+
+        // 进入指定区域编辑状态
+        switch (section)
+        {
+            case "title":
+                _isEditingTitle = true;
+                break;
+            case "description":
+                _isEditingDescription = true;
+                break;
+            case "personnel":
+                _isEditingPersonnel = true;
+                break;
+            case "cooperation":
+                _isEditingCooperation = true;
+                break;
+        }
+    }
+
+    private void CancelEdit(string section)
+    {
+        // 恢复原始数据
+        switch (section)
+        {
+            case "title":
+                _editableProject.Name = Project.Name;
+                _isEditingTitle = false;
+                break;
+            case "description":
+                _editableProject.Description = Project.Description;
+                _isEditingDescription = false;
+                break;
+            case "personnel":
+                _editableProject.Manager = Project.Manager;
+                _editableProject.DeputyManager = Project.DeputyManager;
+                _editableProject.TechnicalLeader = Project.TechnicalLeader;
+                _editableProject.ProductionLeader = Project.ProductionLeader;
+                _editableProject.SafetyLeader = Project.SafetyLeader;
+                _isEditingPersonnel = false;
+                break;
+            case "cooperation":
+                _editableProject.ProjectGroup = Project.ProjectGroup;
+                _editableProject.PartA = Project.PartA;
+                var selectedIds = Project.Outsources.Select(po => po.OutsourceId).ToHashSet();
+                _selectedOutsourceCompanies = _outsourceCompanyList.Where(c => selectedIds.Contains(c.Id)).ToHashSet();
+                _isEditingCooperation = false;
+                break;
+        }
+    }
+
+    private async Task SaveTitle()
     {
         Project.Name = _editableProject.Name;
+        await UpdateProjectAsync("标题");
+    }
+
+    private async Task SaveDescription()
+    {
         Project.Description = _editableProject.Description;
-        Project.ProjectGroupId = _editableProject.ProjectGroup?.Id;
-        Project.PartAId = _editableProject.PartA?.Id;
+        await UpdateProjectAsync("项目描述");
+    }
+
+    private async Task SavePersonnel()
+    {
         Project.ManagerId = _editableProject.Manager?.Id;
         Project.DeputyManagerId = _editableProject.DeputyManager?.Id;
         Project.TechnicalLeaderId = _editableProject.TechnicalLeader?.Id;
         Project.ProductionLeaderId = _editableProject.ProductionLeader?.Id;
         Project.SafetyLeaderId = _editableProject.SafetyLeader?.Id;
-        Project.Outsources = _selectedOutsourceCompanies
-            .Select(c => new ProjectOutsource
-            {
-                ProjectId = Project.Id,
-                OutsourceId = c.Id,
-            }).ToList();
+        await UpdateProjectAsync("人员组织");
+    }
 
+    private async Task SaveCooperation()
+    {
+        Project.ProjectGroupId = _editableProject.ProjectGroup?.Id;
+        Project.PartAId = _editableProject.PartA?.Id;
+        Project.Outsources = _selectedOutsourceCompanies
+        .Select(c => new ProjectOutsource
+        {
+            ProjectId = Project.Id,
+            OutsourceId = c.Id,
+        }).ToList();
+        await UpdateProjectAsync("合作单位");
+    }
+
+    private async Task UpdateProjectAsync(string sectionName)
+    {
         var errorCode = ProjectService.ValidateAProject(Project);
         if (errorCode != ErrorCode.None)
         {
@@ -201,17 +418,31 @@
 
         if (success)
         {
-            Snackbar.Add("项目信息已更新", Severity.Success);
-            _isEditing = false;
+            Snackbar.Add($"{sectionName}已更新", Severity.Success);
+            // 退出当前编辑状态
+            switch (sectionName)
+            {
+                case "标题":
+                    _isEditingTitle = false;
+                    break;
+                case "项目描述":
+                    _isEditingDescription = false;
+                    break;
+                case "人员组织":
+                    _isEditingPersonnel = false;
+                    break;
+                case "合作单位":
+                    _isEditingCooperation = false;
+                    break;
+            }
 
+            // 重新加载数据
             Project = await ProjectService.GetProjectByIdAsync(Project.Id);
-            // 重新加载选中的外协公司
-            var newSelectedIds = Project.Outsources.Select(po => po.OutsourceId).ToHashSet();
-            _selectedOutsourceCompanies = _outsourceCompanyList.Where(c => newSelectedIds.Contains(c.Id)).ToHashSet();
+            CopyProject();
         }
         else
         {
-            Snackbar.Add("更新失败", Severity.Error);
+            Snackbar.Add($"{sectionName}更新失败", Severity.Error);
         }
     }
 
