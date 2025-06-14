@@ -23,7 +23,6 @@
     else
     {
         <MudCard Class="elevation-1 elevation-sm-3 ">
-            <!-- Header -->
             <MudCardHeader Class="d-flex flex-column flex-sm-row align-center">
                 <MudAvatar Size="@(_isMobile? Size.Medium: Size.Large)" Color="Color.Primary"
                     Class="mb-2 mt-2 mb-sm-0 mr-sm-4">
@@ -58,12 +57,11 @@
                 </div>
             </MudCardHeader>
 
-            <!-- Content -->
             <MudCardContent>
                 <MudGrid Spacing="3">
                     <!-- 基本信息 -->
                     <MudItem xs="12" sm="6" Class="order-2 order-sm-1">
-                        <MudPaper Elevation="0" Class="pa-3" Outlined>
+                        <MudPaper Elevation="0" Class="pa-3">
                             <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-3">
                                 基本信息
                             </MudText>
@@ -117,7 +115,7 @@
 
                     <!-- 组织信息 -->
                     <MudItem xs="12" sm="6" Class="order-1 order-sm-2 mb-4 mb-sm-0">
-                        <MudPaper Elevation="0" Class="pa-3" Outlined>
+                        <MudPaper Elevation="0" Class="pa-3">
                             <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mb-3">
                                 组织信息
                             </MudText>
