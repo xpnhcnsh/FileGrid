@@ -4,6 +4,7 @@ using FileGrid.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FileGrid.Migrations
 {
     [DbContext(typeof(FileGridContext))]
-    partial class FileGridContextModelSnapshot : ModelSnapshot
+    [Migration("20250618121344_AddDrillHolePhase")]
+    partial class AddDrillHolePhase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -98,6 +101,48 @@ namespace FileGrid.Migrations
                     b.HasIndex("PhaseId");
 
                     b.ToTable("CompletionCondition");
+                });
+
+            modelBuilder.Entity("FileGrid.Entities.ConditionFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ApprovedTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CompletionConditionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("UploadedTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UploadedUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompletionConditionId");
+
+                    b.HasIndex("UploadedUserId");
+
+                    b.ToTable("ConditionFile");
                 });
 
             modelBuilder.Entity("FileGrid.Entities.Department", b =>
@@ -447,9 +492,6 @@ namespace FileGrid.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("CompletionConditionId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -480,8 +522,6 @@ namespace FileGrid.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CompletionConditionId");
 
                     b.HasIndex("CreatedById");
 
@@ -837,6 +877,23 @@ namespace FileGrid.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("FileGrid.Entities.ConditionFile", b =>
+                {
+                    b.HasOne("FileGrid.Entities.CompletionCondition", null)
+                        .WithMany("RequiredFiles")
+                        .HasForeignKey("CompletionConditionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FileGrid.Entities.User", "UploadedUser")
+                        .WithMany()
+                        .HasForeignKey("UploadedUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UploadedUser");
+                });
+
             modelBuilder.Entity("FileGrid.Entities.Department", b =>
                 {
                     b.HasOne("FileGrid.Entities.Company", "Company")
@@ -1021,11 +1078,6 @@ namespace FileGrid.Migrations
 
             modelBuilder.Entity("FileGrid.Entities.Resource", b =>
                 {
-                    b.HasOne("FileGrid.Entities.CompletionCondition", null)
-                        .WithMany("RequiredFiles")
-                        .HasForeignKey("CompletionConditionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("FileGrid.Entities.User", "Creator")
                         .WithMany("UploadedResources")
                         .HasForeignKey("CreatedById")

@@ -19,4 +19,5 @@ public class Company
     public virtual ICollection<ProjectOutsource> ProjectsOutSources { get; set; } = []; //作为外协单位参与的项目
     public virtual ICollection<ProjectPartA> ProjectPartAs { get; set; } = []; //作为甲方参与的项目
     public virtual ICollection<Department> Departments { get; set; } = []; // 公司下的部门
+    public virtual ICollection<DrillHole> DrillHoles { get; set; } = []; //作为外协单位管理的井场
 }

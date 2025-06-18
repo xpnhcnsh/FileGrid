@@ -36,4 +36,5 @@ public class Project
     public virtual ProjectResource? Resource { get; set; }  // 关联资源（MinIO存储路径）
     public virtual ICollection<UserProject> AuthorizedUsers { get; set; } = [];  // 授权用户
     public virtual ICollection<ProjectOutsource> Outsources { get; set; } = [];  // 外包单位
+    public virtual ICollection<DrillHole> DrillHoles { get; set; } = []; //井场
 }

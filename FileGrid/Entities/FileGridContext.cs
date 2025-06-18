@@ -465,6 +465,96 @@ namespace FileGrid.Entities
                     ticks => TimeSpan.FromTicks(ticks));
             });
 
+            modelBuilder.Entity<DrillHole>(entity =>
+            {
+                entity.ToTable("DrillHoles");
+                entity.HasKey(d => d.Id);
+
+                entity.Property(d => d.Name)
+                        .IsRequired()
+                        .HasMaxLength(200);
+                entity.Property(d => d.Description).HasMaxLength(1000);
+                entity.Property(d => d.StartedTime);
+                entity.Property(d => d.EndTime);
+                entity.Property(d => d.Status).IsRequired();
+
+                // DrillHole - Project: 一对多
+                entity.HasOne(d => d.Project)
+                        .WithMany(p => p.DrillHoles)
+                        .HasForeignKey(d => d.ProjectId)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                // 自引用：重开的父钻孔
+                entity.HasOne(d => d.ParentDrillHole)
+                        .WithMany()
+                        .HasForeignKey(d => d.ParentDrillHoleId)
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                // 多对多 Outsources
+                entity.HasMany(d => d.Outsources)
+                        .WithMany(c => c.DrillHoles)
+                        .UsingEntity<Dictionary<string, object>>(
+                            "DrillHoleOutsource",
+                            j => j.HasOne<Company>()
+                                .WithMany()
+                                .HasForeignKey("CompanyId")
+                                .OnDelete(DeleteBehavior.Cascade),
+                            j => j.HasOne<DrillHole>()
+                                .WithMany()
+                                .HasForeignKey("DrillHoleId")
+                                .OnDelete(DeleteBehavior.Cascade),
+                            j =>
+                            {
+                                j.HasKey("DrillHoleId", "CompanyId");
+                                j.ToTable("DrillHoleOutsource");
+                            });
+
+                // DrillHole - Phases: 一对多
+                entity.HasMany(d => d.Phases)
+                        .WithOne(p => p.DrillHole)
+                        .HasForeignKey(p => p.DrillHoleId)
+                        .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Phase>(entity =>
+            {
+                entity.ToTable("Phases");
+                entity.HasKey(p => p.Id);
+
+                entity.Property(p => p.Name)
+                    .IsRequired()
+                    .HasMaxLength(200);
+                entity.Property(p => p.Description).HasMaxLength(1000);
+                entity.Property(p => p.PhaseType).IsRequired();
+                entity.Property(p => p.Status).IsRequired();
+                entity.Property(p => p.Order).IsRequired();
+                entity.Property(p => p.StartedTime);
+                entity.Property(p => p.CompletedTime);
+
+                // Phase - DrillHole FK
+                entity.HasOne(p => p.DrillHole)
+                    .WithMany(d => d.Phases)
+                    .HasForeignKey(p => p.DrillHoleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Phase 自引用：SubPhases
+                entity.HasOne(p => p.ParentPhase)
+                    .WithMany(p => p.SubPhases)
+                    .HasForeignKey(p => p.ParentPhaseId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<CompletionCondition>(entity =>
+            {
+                entity.HasKey(cc => cc.Id);
+
+                // 一个 CompletionCondition 可包含多个文件资源
+                entity.HasMany(cc => cc.RequiredFiles)
+                    .WithOne()  // Resource 不需显式导航回 Condition
+                    .HasForeignKey("CompletionConditionId")
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
             base.OnModelCreating(modelBuilder);
         }
     }
