@@ -1,10 +1,11 @@
 using System;
 using FileGrid.Entities;
 using FileGrid.Services.Interface;
+using Microsoft.EntityFrameworkCore;
 
 namespace FileGrid.Services;
 
-public class DrillHoleService(FileGridContext context) //: IDrillHoleService
+public class DrillHoleService(FileGridContext context) : IDrillHoleService
 {
     private readonly FileGridContext _context = context;
 
@@ -58,4 +59,70 @@ public class DrillHoleService(FileGridContext context) //: IDrillHoleService
     //     foreach (var sub in phase.SubPhases)
     //         ResetPhaseRecursive(sub);
     // }
+
+    public async Task<bool> AddDrillHole(DrillHole hole)
+    {
+        if (hole == null || string.IsNullOrWhiteSpace(hole.Name))
+            return false;
+        try
+        {
+            await _context.DrillHoles.AddAsync(hole);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> AddOrUpdateAsync(DrillHole hole)
+    {
+        if (hole == null || string.IsNullOrWhiteSpace(hole.Name))
+            return false;
+
+        try
+        {
+            if (hole.Id == Guid.Empty)
+            {
+                // 新增
+                _context.DrillHoles.Add(hole);
+            }
+            else
+            {
+                var existing = await _context.DrillHoles.FirstOrDefaultAsync(x => x.Id == hole.Id);
+                if (existing == null)
+                    return false;
+                _context.DrillHoles.Entry(existing).CurrentValues.SetValues(hole);
+            }
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteDrillHole(Guid id)
+    {
+        if (id == Guid.Empty)
+            return false;
+
+        try
+        {
+            var existing = await _context.DrillHoles.FirstOrDefaultAsync(h => h.Id == id);
+            if (existing == null)
+                return false;
+
+            _context.DrillHoles.Remove(existing);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
 }

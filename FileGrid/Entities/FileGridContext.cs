@@ -31,6 +31,8 @@ namespace FileGrid.Entities
         public DbSet<UserProjectGroup> UserProjectGroups { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<InvitationCode> InvitationCodes { get; set; }
+        public DbSet<DrillHole> DrillHoles { get; set; }
+        public DbSet<Phase> Phases { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -476,7 +478,32 @@ namespace FileGrid.Entities
                 entity.Property(d => d.Description).HasMaxLength(1000);
                 entity.Property(d => d.StartedTime);
                 entity.Property(d => d.EndTime);
-                entity.Property(d => d.Status).IsRequired();
+                entity.Property(d => d.Status)
+                      .HasConversion<string>()
+                      .HasMaxLength(50)
+                      .IsRequired();
+                entity.Property(d => d.DesignedCollarElevation)
+                      .HasColumnType("float")
+                      .HasComment("设计孔口标高");
+                entity.Property(d => d.MeasuredCollarElevation)
+                      .HasColumnType("float")
+                      .HasComment("实际孔口标高");
+                entity.Property(d => d.DesignedCollarX)
+                      .HasColumnType("float")
+                      .HasComment("设计孔口坐标东");
+                entity.Property(d => d.DesignedCollarY)
+                      .HasColumnType("float")
+                      .HasComment("设计孔口坐标北");
+                entity.Property(d => d.MeasuredCollarX)
+                      .HasColumnType("float")
+                      .HasComment("实际孔口坐标东");
+                entity.Property(d => d.MeasuredCollarY)
+                      .HasColumnType("float")
+                      .HasComment("实际孔口坐标北");
+                entity.Property(d => d.CoordinateSystem)
+                      .HasConversion<string>()
+                      .HasMaxLength(50)
+                      .HasComment("坐标系类型");
 
                 // DrillHole - Project: 一对多
                 entity.HasOne(d => d.Project)

@@ -56,6 +56,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IClipboardService, ClipboardService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IDrillHoleService, DrillHoleService>();
 
 // builder.Services.Configure<CookiePolicyOptions>(options =>
 //             {

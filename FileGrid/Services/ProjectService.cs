@@ -25,6 +25,8 @@ public class ProjectService(FileGridContext context) : IProjectService
             .Include(x => x.ProductionLeader)
             .Include(x => x.TechnicalLeader)
             .Include(x => x.ProjectGroup)
+            .Include(x => x.DrillHoles)
+                .ThenInclude(DH => DH.Phases)
             .OrderBy(x => x.Name)
             .ToListAsync();
     }

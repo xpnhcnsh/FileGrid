@@ -4,6 +4,7 @@ using FileGrid.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FileGrid.Migrations
 {
     [DbContext(typeof(FileGridContext))]
-    partial class FileGridContextModelSnapshot : ModelSnapshot
+    [Migration("20250619110613_AddDrillHoleXYCoordinates")]
+    partial class AddDrillHoleXYCoordinates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -145,31 +148,31 @@ namespace FileGrid.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<double?>("DesignedCollarElevation")
-                        .HasColumnType("float")
+                    b.Property<float?>("DesignedCollarElevation")
+                        .HasColumnType("real")
                         .HasComment("设计孔口标高");
 
-                    b.Property<double?>("DesignedCollarX")
-                        .HasColumnType("float")
+                    b.Property<float?>("DesignedCollarX")
+                        .HasColumnType("real")
                         .HasComment("设计孔口坐标东");
 
-                    b.Property<double?>("DesignedCollarY")
-                        .HasColumnType("float")
+                    b.Property<float?>("DesignedCollarY")
+                        .HasColumnType("real")
                         .HasComment("设计孔口坐标北");
 
                     b.Property<DateTime?>("EndTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<double?>("MeasuredCollarElevation")
-                        .HasColumnType("float")
+                    b.Property<float?>("MeasuredCollarElevation")
+                        .HasColumnType("real")
                         .HasComment("实际孔口标高");
 
-                    b.Property<double?>("MeasuredCollarX")
-                        .HasColumnType("float")
+                    b.Property<float?>("MeasuredCollarX")
+                        .HasColumnType("real")
                         .HasComment("实际孔口坐标东");
 
-                    b.Property<double?>("MeasuredCollarY")
-                        .HasColumnType("float")
+                    b.Property<float?>("MeasuredCollarY")
+                        .HasColumnType("real")
                         .HasComment("实际孔口坐标北");
 
                     b.Property<string>("Name")

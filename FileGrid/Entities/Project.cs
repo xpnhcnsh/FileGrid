@@ -11,7 +11,6 @@ public class Project
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public int? ProjectGroupId { get; set; }  // 所属项目组
-
     [ForeignKey(nameof(ProjectGroupId))]
     public virtual Department? ProjectGroup { get; set; }  // 导航属性
     public ProjectStatus Status { get; set; } = ProjectStatus.Active;  // 项目状态

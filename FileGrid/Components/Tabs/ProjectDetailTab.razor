@@ -1,4 +1,5 @@
-﻿@using FileGrid.Utils.Class
+﻿@using FileGrid.Services
+@using FileGrid.Utils.Class
 @using FileGrid.Utils.Enum
 @using MudBlazor
 @using FileGrid.Entities
@@ -8,6 +9,8 @@
 @inject ICompanyService CompanyService
 @inject IUserService UserService
 @inject ICompanyService DepartmentService
+@inject IDrillHoleService DrillHoleService
+@inject IDialogService DialogService
 
 <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="2">
     @* 项目信息 *@
@@ -255,21 +258,116 @@
     @* 井场信息 *@
     <MudExpansionPanel Text="井场信息" Expanded="false">
         <MudCard Style="box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important;">
+            <MudCardHeader Class="flex items-center justify-between px-4 py-2">
+                <MudText Typo="Typo.h6" Class="font-bold text-gray-800">钻孔列表</MudText>
+                <MudButton Class="ml-3" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddDrillHole" Size="Size.Small">
+                    <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1" /> 添加钻孔
+                </MudButton>
+            </MudCardHeader>
+                @if (_drillHoles?.Any() == true)
+                {
+                    @foreach (var hole in _drillHoles)
+                    {
+                        <MudCardContent>
+                            <MudExpansionPanels MultiExpansion="true" Outlined="false" Elevation="0" >
+                                <MudExpansionPanel Text="@hole.Name" Expanded="true">
+                                    <MudCard Elevation="0" Outlined="false">
+                                        <MudCardHeader>
+                                            <MudText Typo="Typo.h5" Class="font-bold text-gray-800">基本情况</MudText>
+                                        @if (_editingDrillHoleId == hole.Id)
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success"
+                                                            OnClick="() => SaveDrillHole(hole)" Size="Size.Small" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Error"
+                                                            OnClick="() => CancelDrillHoleEdit(hole)" Size="Size.Small" />
+                                        }
+                                        else
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Default"
+                                                    OnClick="() => _editingDrillHoleId = hole.Id" Size="Size.Small" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Default"
+                                                    OnClick="() => DeleteDrillHole(hole)" Size="Size.Small"/>   
+                                        }
+                                        </MudCardHeader>
 
+                                        <MudCardContent>
+                                            @if (_editingDrillHoleId == hole.Id)
+                                            {
+                                                <MudGrid Spacing="2">
+                                                    <MudItem sm="12">
+                                                        <MudTextField T="string" Label="钻孔名称" @bind-Value="hole.Name" />
+                                                    </MudItem>
+                                                    <MudItem xs="12" sm="6">
+                                                        <MudTextField T="double?" Label="设计孔口标高 (m)" @bind-Value="hole.DesignedCollarElevation" />
+                                                    </MudItem>
+                                                    <MudItem xs="12" sm="6">
+                                                        <MudTextField T="double?" Label="复测孔口标高 (m)" @bind-Value="hole.MeasuredCollarElevation" />
+                                                    </MudItem>
+                                                    <MudItem xs="12" sm="6">
+                                                        <MudTextField T="double?" Label="设计坐标X" @bind-Value="hole.DesignedCollarX" />
+                                                    </MudItem>
+                                                    <MudItem xs="12" sm="6">
+                                                        <MudTextField T="double?" Label="设计坐标Y" @bind-Value="hole.DesignedCollarY" />
+                                                    </MudItem>
+                                                    <MudItem xs="12" sm="6">
+                                                        <MudTextField T="double?" Label="复测坐标X" @bind-Value="hole.MeasuredCollarX" />
+                                                    </MudItem>
+                                                    <MudItem xs="12" sm="6">
+                                                        <MudTextField T="double?" Label="复测坐标Y" @bind-Value="hole.MeasuredCollarY" />
+                                                    </MudItem>
+                                                </MudGrid>
+                                            }
+                                            else
+                                            {
+                                                <MudGrid Spacing="2">
+                                                    <MudItem sm="12">
+                                                        <MudText Typo="Typo.h6">钻孔名称</MudText>
+                                                        <MudText Typo="Typo.body1">@hole.Name</MudText>
+                                                    </MudItem>
+                                                    <MudItem xs="12" sm="6">
+                                                        <MudText Typo="Typo.h6">设计孔口标高 (m)</MudText>
+                                                        <MudText Typo="Typo.body1">@hole.DesignedCollarElevation?.ToString()</MudText>
+                                                    </MudItem>
+                                                    <MudItem xs="12" sm="6">
+                                                        <MudText Typo="Typo.h6">复测孔口标高 (m)</MudText>
+                                                        <MudText Typo="Typo.body1">@hole.MeasuredCollarElevation?.ToString()</MudText>
+                                                    </MudItem>
+                                                    <MudItem xs="12" sm="6">
+                                                        <MudText Typo="Typo.h6">设计坐标</MudText>
+                                                        <MudText Typo="Typo.body1">@hole.DesignedCollarX , @hole.DesignedCollarY</MudText>
+                                                    </MudItem>
+                                                    <MudItem xs="12" sm="6">
+                                                        <MudText Typo="Typo.h6">复测坐标 </MudText>
+                                                        <MudText Typo="Typo.body1">@hole.MeasuredCollarX , @hole.MeasuredCollarY</MudText>
+                                                    </MudItem>
+                                                </MudGrid>
+                                            }
+                                        </MudCardContent>
+                                    </MudCard>
+                                </MudExpansionPanel>
+                            </MudExpansionPanels>
+                        </MudCardContent>
+                        }
+                    }
+                else
+                {
+                    <MudText Class="text-gray-500 px-4 py-2">暂无钻孔</MudText>
+                }
         </MudCard>
     </MudExpansionPanel>
+
 </MudExpansionPanels>
 
 
 @code {
     [Parameter]
     public Project? Project { get; set; } = default!;
-
     private Project _editableProject = new();
     private bool _isEditingTitle = false;
     private bool _isEditingDescription = false;
     private bool _isEditingPersonnel = false;
     private bool _isEditingCooperation = false;
+    private Guid? _editingDrillHoleId = null; // 当前处于编辑状态的钻孔Id（同时仅一个）
     private MudForm _form;
     private List<Company> _partAList = [];
     private List<Company> _outsourceCompanyList = [];
@@ -277,6 +375,7 @@
     private List<User> _employeeList = [];
     private List<Department> _projectGroupList = [];
     private Dictionary<int, string> _companyIdToNameMap = new();
+    private List<DrillHole> _drillHoles = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -287,34 +386,70 @@
 
         _companyIdToNameMap = _outsourceCompanyList.ToDictionary(c => c.Id, c => c.Name);
 
-        var selectedIds = Project.Outsources.Select(po => po.OutsourceId).ToHashSet();
-        _selectedOutsourceCompanies = _outsourceCompanyList.Where(c => selectedIds.Contains(c.Id)).ToHashSet();
+        var SelectedOutSourceIds = Project!.Outsources.Select(po => po.OutsourceId).ToHashSet();
+        _selectedOutsourceCompanies = _outsourceCompanyList.Where(c => SelectedOutSourceIds.Contains(c.Id)).ToHashSet();
 
-        CopyProject();
+        UpdateEditableProject();
+
+        _drillHoles = Project.DrillHoles.ToList();
     }
 
-    private void ToggleEdit()
+
+    private void CancelDrillHoleEdit(DrillHole hole)
     {
-        // 全局编辑切换逻辑
-        var anyEditing = _isEditingTitle || _isEditingDescription || _isEditingPersonnel || _isEditingCooperation;
-
-        if (anyEditing)
+        // 恢复该钻孔的原始信息（重新从数据库获取或从 Project.DrillHoles 找原始副本）
+        var original = Project.DrillHoles.FirstOrDefault(h => h.Id == hole.Id);
+        if (original is not null)
         {
-            CancelEdit("title");
-            CancelEdit("description");
-            CancelEdit("personnel");
-            CancelEdit("cooperation");
+            hole.Name = original.Name;
+            hole.DesignedCollarElevation = original.DesignedCollarElevation;
+            hole.MeasuredCollarElevation = original.MeasuredCollarElevation;
+            hole.DesignedCollarX = original.DesignedCollarX;
+            hole.DesignedCollarY = original.DesignedCollarY;
+            hole.MeasuredCollarX = original.MeasuredCollarX;
+            hole.MeasuredCollarY = original.MeasuredCollarY;
         }
+
+        _editingDrillHoleId = null;
+    }
+
+    private void AddDrillHole()
+    {
+         _drillHoles.Add(
+            new DrillHole
+            {
+                Id = Guid.Empty,
+                ProjectId = Project!.Id,
+                Name = string.Empty,
+                Project = Project,
+                Status = DrillHoleStatus.NotStarted
+            });
+    }
+
+    private async Task SaveDrillHole(DrillHole hole)
+    {
+        var success = await DrillHoleService.AddOrUpdateAsync(hole);
+        if (success)
+            Snackbar.Add("钻孔保存成功", Severity.Success);
         else
+            Snackbar.Add("钻孔保存失败", Severity.Error);
+        _editingDrillHoleId = null;
+    }
+
+    private async Task DeleteDrillHole(DrillHole hole)
+    {
+        var confirmed = await DialogService.ShowMessageBox("确认删除", $"确认要删除钻孔 [{hole.Name}] 吗？",
+            yesText: "删除", cancelText: "取消");
+        if (confirmed == true)
         {
-            EditSection("title");
-            EditSection("description");
-            EditSection("personnel");
-            EditSection("cooperation");
+            await DrillHoleService.DeleteDrillHole(hole.Id);
+            _drillHoles.Remove(hole);
+            Snackbar.Add("已删除", Severity.Success);
         }
     }
 
-    private void CopyProject()
+
+    private void UpdateEditableProject()
     {
         _editableProject = new Project
         {
@@ -333,7 +468,8 @@
                 ProjectId = po.ProjectId,
                 OutsourceId = po.OutsourceId,
                 Outsource = po.Outsource
-            }).ToList()
+            }).ToList(),
+            DrillHoles = Project.DrillHoles,
         };
     }
 
@@ -462,7 +598,7 @@
 
             // 重新加载数据
             Project = await ProjectService.GetProjectByIdAsync(Project.Id);
-            CopyProject();
+            UpdateEditableProject();
         }
         else
         {
