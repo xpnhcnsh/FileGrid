@@ -56,21 +56,33 @@ public class ProjectService(FileGridContext context) : IProjectService
 
         try
         {
-            // 更新主表字段
+            // 用原生 SQL 删除旧的外协关系
+            await _context.Database.ExecuteSqlRawAsync(
+                "DELETE FROM ProjectOutsources WHERE ProjectId = {0}", project.Id);
+
+            // 🔥 清除所有跟踪，避免冲突
+            _context.ChangeTracker.Clear();
+
+            // 拷贝 Outsource 列表（避免后续 Update(project) 导入导航属性）
+            var newOutsources = project.Outsources?
+                .Select(o => new ProjectOutsource
+                {
+                    ProjectId = project.Id,
+                    OutsourceId = o.OutsourceId
+                }).ToList();
+
+            // 💡 清除导航属性引用，避免附加冲突
+            project.Outsources = null;
+
+            // 手动附加主项目对象（无导航属性）
             _context.Projects.Update(project);
 
-            // 删除旧的外协关系
-            var existingOutsources = _context.ProjectOutsources
-                .Where(po => po.ProjectId == project.Id);
-            _context.ProjectOutsources.RemoveRange(existingOutsources);
-
-            // 添加新的外协关系
-            if (project.Outsources != null && project.Outsources.Any())
+            // 添加新的外协关系（不依赖导航属性）
+            if (newOutsources != null && newOutsources.Count != 0)
             {
-                await _context.ProjectOutsources.AddRangeAsync(project.Outsources);
+                await _context.ProjectOutsources.AddRangeAsync(newOutsources);
             }
 
-            // 提交更改
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -79,7 +91,6 @@ public class ProjectService(FileGridContext context) : IProjectService
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            // 可选：记录日志 ex.Message 或 ex.ToString()
             return false;
         }
     }
