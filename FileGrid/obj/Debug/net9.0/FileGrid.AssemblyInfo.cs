@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FileGrid")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bf69a5874cb183d2c571b92fd36522a1a5aade73")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0fc9ad75d138b5ff315f28f85a12218f65240882")]
 [assembly: System.Reflection.AssemblyProductAttribute("FileGrid")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FileGrid")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
