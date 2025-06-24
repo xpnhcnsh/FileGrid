@@ -1,6 +1,10 @@
 {
   "Files": [
     {
+      "Id": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/css/compilecss.css",
+      "PackagePath": "staticwebassets/css/compilecss.css"
+    },
+    {
       "Id": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/wwwroot/css/custom.css",
       "PackagePath": "staticwebassets/css/custom.css"
     },

@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
 /* 去除MudCard边框和阴影 */
 .no-border {
     border: none !important;

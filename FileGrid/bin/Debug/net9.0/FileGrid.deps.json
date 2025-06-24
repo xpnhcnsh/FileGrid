@@ -9,6 +9,7 @@
       "FileGrid/1.0.0": {
         "dependencies": {
           "Extensions.MudBlazor.StaticInput": "3.2.0",
+          "Markdig": "0.41.3",
           "Microsoft.AspNetCore.Components.Authorization": "9.0.4",
           "Microsoft.AspNetCore.Components.WebAssembly.Server": "9.0.4",
           "Microsoft.EntityFrameworkCore": "9.0.4",
@@ -83,6 +84,14 @@
           "lib/net6.0/Humanizer.dll": {
             "assemblyVersion": "2.14.0.0",
             "fileVersion": "2.14.1.48190"
+          }
+        }
+      },
+      "Markdig/0.41.3": {
+        "runtime": {
+          "lib/net9.0/Markdig.dll": {
+            "assemblyVersion": "0.41.0.0",
+            "fileVersion": "0.41.3.0"
           }
         }
       },
@@ -1238,6 +1247,13 @@
       "sha512": "sha512-lQKvtaTDOXnoVJ20ibTuSIOf2i0uO0MPbDhd1jm238I+U/2ZnRENj0cktKZhtchBMtCUSRQ5v4xBCUbKNmyVMw==",
       "path": "humanizer.core/2.14.1",
       "hashPath": "humanizer.core.2.14.1.nupkg.sha512"
+    },
+    "Markdig/0.41.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-i3vSTyGpBGWbJB04aJ3cPJs0T3BV2e1nduW3EUHK/i+xUupYbym75iZPss/XjqhS5JlBErwQYnx7ofK3Zcsozg==",
+      "path": "markdig/0.41.3",
+      "hashPath": "markdig.0.41.3.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Authorization/9.0.4": {
       "type": "package",

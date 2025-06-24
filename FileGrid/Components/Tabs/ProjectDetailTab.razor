@@ -4,6 +4,8 @@
 @using MudBlazor
 @using FileGrid.Entities
 @using FileGrid.Services.Interface
+@using Markdig
+
 @inject IProjectService ProjectService
 @inject ISnackbar Snackbar
 @inject ICompanyService CompanyService
@@ -67,15 +69,14 @@
                         <MudCardContent Style="box-shadow: none !important; border: none !important;">
                             @if (_isEditingDescription)
                             {
-                                <MudTextField @bind-Value="_editableProject.Description" Label="项目描述" Lines="4"
+                                <MudTextField  @bind-Value="_editableProject.Description" Label="项目描述（支持MarkDown）" Lines="10"
                                     Variant="Variant.Outlined" Class="w-full" />
                             }
                             else
                             {
-                                <div class="bg-gray-50 p-4 rounded-lg">
-                                    <MudText Class="text-gray-700 leading-relaxed">
-                                        @(string.IsNullOrEmpty(Project.Description) ? "暂无项目描述" : Project.Description)
-                                    </MudText>
+                                <div class="prose text-gray-800 bg-gray-50 p-4 rounded-lg leading-relaxed"
+                                    style="max-width: none;">
+                                    @((MarkupString)RenderHTML(Project.Description))
                                 </div>
                             }
                         </MudCardContent>
@@ -392,6 +393,21 @@
         UpdateEditableProject();
 
         _drillHoles = Project.DrillHoles.ToList();
+    }
+
+    /// <summary>
+    /// 将 Markdown 字符串渲染为 HTML
+    /// </summary>
+    private string RenderHTML(string markdownstring)
+    {
+        if (string.IsNullOrWhiteSpace(markdownstring))
+            return string.Empty;
+
+        var pipeline = new MarkdownPipelineBuilder()
+            .UseAdvancedExtensions()  // 启用 Superscript、表格、脚注等扩展
+            .Build();
+
+        return Markdown.ToHtml(markdownstring ?? "暂无项目描述", pipeline);
     }
 
 

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Vy6N7Vcy/K0=",
+  "dgSpecHash": "N/P64Ci12kM=",
   "success": true,
   "projectFilePath": "/Users/xpnhcnsh/Code/FileGrid/FileGrid/FileGrid.csproj",
   "expectedPackageFiles": [
@@ -9,6 +9,7 @@
     "/Users/xpnhcnsh/.nuget/packages/communitytoolkit.highperformance/8.3.0/communitytoolkit.highperformance.8.3.0.nupkg.sha512",
     "/Users/xpnhcnsh/.nuget/packages/extensions.mudblazor.staticinput/3.2.0/extensions.mudblazor.staticinput.3.2.0.nupkg.sha512",
     "/Users/xpnhcnsh/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
+    "/Users/xpnhcnsh/.nuget/packages/markdig/0.41.3/markdig.0.41.3.nupkg.sha512",
     "/Users/xpnhcnsh/.nuget/packages/microsoft.aspnetcore.authorization/9.0.4/microsoft.aspnetcore.authorization.9.0.4.nupkg.sha512",
     "/Users/xpnhcnsh/.nuget/packages/microsoft.aspnetcore.components/9.0.4/microsoft.aspnetcore.components.9.0.4.nupkg.sha512",
     "/Users/xpnhcnsh/.nuget/packages/microsoft.aspnetcore.components.analyzers/9.0.4/microsoft.aspnetcore.components.analyzers.9.0.4.nupkg.sha512",
