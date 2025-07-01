@@ -1,37 +1,71 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace FileGrid.Utils.Enum;
 
 public enum PhaseType
 {
+    [Display(Name = "准备阶段")]
     Preparation,
+    [Display(Name = "垂直钻孔")]
     VerticalDrilling,
+    [Display(Name = "定向钻孔")]
     InclinedDrilling,
+    [Display(Name = "下套管")]
     Casing,
-    GroutingCasing, //注浆固管
+    [Display(Name = "注浆固管")]
+    GroutingCasing,
+    [Display(Name = "扩孔")]
     Reaming,
-    GravelFilling, //填砾
-    SandFilling, //填砂
-    Grouting, //注浆
-    GroutingSetting, //注浆候凝
-    PumpingTest, //常规抽水试验
-    StratifiedPumpingTest, //分层抽水试验
-    PackerTest, //压水试验
-    ConventionalLogging, //常规测井
-    NaturalGammaLogging, //自然伽马测井
-    ResistivityLogging, //电阻率测井
-    AcousticLogging, //声波测井
-    DensityLogging, //密度测井
-    NeutronLogging, //中子测井
-    CaliperLogging, //井径测量
-    GasLogging, //气测录井
-    MudLogging, //泥浆参数测井
-    ArrayComprehensiveLogging, //阵列综合测井
-    ArrayResistivityLogging, //阵列电阻率测井
-    ArrayInductionLogging, //阵列感应测井
-    ArrayAcousticLogging, //阵列声波测井
-    ArrayLateralLogging, //阵列侧向测井
-    ArrayMicroResistivityLogging, //阵列微电阻率测井
-    LabTesting, //实验室检测
-    MonitoringInstrumentInstallation, //安装水文长观设备
-    Sealing, //封孔
-    Undefined //其他
+    [Display(Name = "填砾")]
+    GravelFilling,
+    [Display(Name = "填砂")]
+    SandFilling,
+    [Display(Name = "注浆")]
+    Grouting,
+    [Display(Name = "注浆候凝")]
+    GroutingSetting,
+    [Display(Name = "常规抽水试验")]
+    PumpingTest,
+    [Display(Name = "分层抽水试验")]
+    StratifiedPumpingTest,
+    [Display(Name = "压水试验")]
+    PackerTest,
+    [Display(Name = "常规测井")]
+    ConventionalLogging,
+    [Display(Name = "自然伽马测井")]
+    NaturalGammaLogging,
+    [Display(Name = "电阻率测井")]
+    ResistivityLogging,
+    [Display(Name = "声波测井")]
+    AcousticLogging,
+    [Display(Name = "密度测井")]
+    DensityLogging,
+    [Display(Name = "中子测井")]
+    NeutronLogging,
+    [Display(Name = "井径测量")]
+    CaliperLogging,
+    [Display(Name = "气测录井")]
+    GasLogging,
+    [Display(Name = "泥浆参数测井")]
+    MudLogging,
+    [Display(Name = "阵列综合测井")]
+    ArrayComprehensiveLogging,
+    [Display(Name = "阵列电阻率测井")]
+    ArrayResistivityLogging,
+    [Display(Name = "阵列感应测井")]
+    ArrayInductionLogging,
+    [Display(Name = "阵列声波测井")]
+    ArrayAcousticLogging,
+    [Display(Name = "阵列侧向测井")]
+    ArrayLateralLogging,
+    [Display(Name = "阵列微电阻率测井")]
+    ArrayMicroResistivityLogging,
+    [Display(Name = "实验室检测")]
+    LabTesting,
+    [Display(Name = "安装长观设备")]
+    MonitoringInstrumentInstallation,
+    [Display(Name = "封孔")]
+    Sealing,
+    [Display(Name = "其他")]
+    Undefined
 }

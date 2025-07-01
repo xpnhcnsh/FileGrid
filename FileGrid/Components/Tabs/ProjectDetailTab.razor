@@ -1,6 +1,7 @@
 ﻿@using FileGrid.Services
 @using FileGrid.Utils.Class
 @using FileGrid.Utils.Enum
+@using FileGrid.Components.Share
 @using MudBlazor
 @using FileGrid.Entities
 @using FileGrid.Services.Interface
@@ -275,20 +276,20 @@
                                     <MudCard Elevation="0" Outlined="false">
                                         <MudCardHeader>
                                             <MudText Typo="Typo.h5" Class="font-bold text-gray-800">基本情况</MudText>
-                                        @if (_editingDrillHoleId == hole.Id)
-                                        {
-                                            <MudIconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success"
-                                                            OnClick="() => SaveDrillHole(hole)" Size="Size.Small" />
-                                            <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Error"
-                                                            OnClick="() => CancelDrillHoleEdit(hole)" Size="Size.Small" />
-                                        }
-                                        else
-                                        {
-                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Default"
-                                                    OnClick="() => _editingDrillHoleId = hole.Id" Size="Size.Small" />
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Default"
-                                                    OnClick="() => DeleteDrillHole(hole)" Size="Size.Small"/>   
-                                        }
+                                            @if (_editingDrillHoleId == hole.Id)
+                                            {
+                                                <MudIconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success"
+                                                                OnClick="() => SaveDrillHole(hole)" Size="Size.Small" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Error"
+                                                                OnClick="() => CancelDrillHoleEdit(hole)" Size="Size.Small" />
+                                            }
+                                            else
+                                            {
+                                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Default"
+                                                        OnClick="() => _editingDrillHoleId = hole.Id" Size="Size.Small" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Default"
+                                                        OnClick="() => DeleteDrillHole(hole)" Size="Size.Small"/>   
+                                            }
                                         </MudCardHeader>
 
                                         <MudCardContent>
@@ -345,6 +346,28 @@
                                             }
                                         </MudCardContent>
                                     </MudCard>
+
+                                    <MudCard Elevation="0" Outlined="false">
+                                        <MudCardHeader Class="flex items-center justify-between px-4 py-2">
+                                            <MudText Typo="Typo.h5" Class="font-bold text-gray-800">关键节点</MudText>
+                                            <MudButton Class="ml-3" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => AddPhase(hole,null))" Size="Size.Small">
+                                                <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-1" /> 添加节点
+                                            </MudButton>
+                                        </MudCardHeader>
+                                        @if(hole.Phases.Any()){
+                                            <MudCardContent>
+                                                @foreach (var phase in hole.Phases.Where(p => p.ParentPhaseId == null).OrderBy(p => p.Order))
+                                                {
+                                                    <PhaseTree DrillHole="hole" Phase="phase" AddPhase="AddPhase" />
+                                                }
+                                            </MudCardContent>
+                                        }
+                                        else{
+                                            <MudCardContent>
+                                                <MudText Class="text-gray-500 px-4 py-2">暂无关键节点</MudText>
+                                            </MudCardContent>
+                                        }
+                                    </MudCard>
                                 </MudExpansionPanel>
                             </MudExpansionPanels>
                         </MudCardContent>
@@ -356,7 +379,6 @@
                 }
         </MudCard>
     </MudExpansionPanel>
-
 </MudExpansionPanels>
 
 
@@ -408,6 +430,35 @@
             .Build();
 
         return Markdown.ToHtml(markdownstring ?? "暂无项目描述", pipeline);
+    }
+
+    private void AddPhase(DrillHole DrillHole, Phase? ParentPhase = null)
+    {
+        var isTopPhase = ParentPhase is null;
+        var phase = new Phase
+        {
+            Id = Guid.NewGuid(),
+            DrillHoleId = DrillHole.Id,
+            Name = "新节点",
+            Description = string.Empty,
+            Status = PhaseStatus.NotStarted,
+            PhaseType = PhaseType.Undefined,
+            Order = isTopPhase ? DrillHole.Phases.Count + 1 : ParentPhase!.SubPhases.Count + 1,
+            CompletedTime = null,
+            StartedTime = null,
+            ParentPhaseId = ParentPhase?.Id,
+            ParentPhase = ParentPhase
+        };
+
+        if (isTopPhase)
+        {
+            DrillHole.Phases.Add(phase);
+        }
+        else
+        {
+            ParentPhase!.SubPhases.Add(phase);
+        }
+        StateHasChanged();
     }
 
 

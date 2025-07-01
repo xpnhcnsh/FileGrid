@@ -1,0 +1,51 @@
+﻿@using FileGrid.Entities
+
+<!-- PhaseTree.razor -->
+<MudCard>
+    <!-- 当前 Phase 信息 -->
+    <MudCardHeader class="font-semibold text-indigo-800">
+        <MudText>节点名称：@Phase.Name - 状态: @Phase.Status.GetDisplayName()</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <span class="font-semibold text-indigo-800">
+            节点类型：- @Phase.PhaseType
+        </span>
+        <span class="font-semibold text-indigo-800">
+            @if (!string.IsNullOrEmpty(Phase.Description))
+            {
+                <span class="font-semibold text-gray-800">描述：- @Phase.Description</span>
+            }
+            else
+            {
+                <span class="font-semibold text-gray-800">描述：- 无描述</span>
+            }
+        </span>
+    </MudCardContent>
+    <MudButton Class="mb-4" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+        StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => AddPhase(DrillHole, Phase))">
+        添加子节点
+    </MudButton>
+
+
+    <!-- 子 Phase 列表 -->
+    @if (Phase.SubPhases?.Any() == true)
+    {
+        <div class="ml-6 mb-4">
+            @foreach (var sub in Phase.SubPhases.OrderBy(p => p.Order))
+            {
+                <PhaseTree DrillHole="DrillHole" Phase="sub" AddPhase="AddPhase" />
+            }
+        </div>
+    }
+</MudCard>
+
+@code {
+    [Parameter]
+    public DrillHole DrillHole { get; set; } = default!;
+
+    [Parameter]
+    public Phase Phase { get; set; } = default!;
+
+    [Parameter]
+    public Action<DrillHole, Phase?> AddPhase { get; set; } = default!;
+}
